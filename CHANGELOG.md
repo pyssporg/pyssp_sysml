@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `pyssp validate` reports dialect problems, FMU interface names, and an
+  optional `fmu_meta.implementation` mismatch without writing an artifact. Its
+  `--base-index` option checks parameter arrays against the indices the
+  generator will emit.
+- `pyssp_sysml2.check_fmu_interfaces` compares every leaf component's expected
+  SSD connector names with its FMU's `variable_names`, taking the same
+  `base_index` as the generator.
+
 ## [0.5.0] - 2026-11-09
 
 ### Added

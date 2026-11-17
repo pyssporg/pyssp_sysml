@@ -63,6 +63,7 @@ FILE_LEVELS: dict[str, tuple[str, ...]] = {
     "test_ssp_metadata.py": ("unit",),
     "test_sync.py": ("contract",),
     "test_sysml_model.py": ("unit", "component"),
+    "test_validate_cli.py": ("system",),
     "test_variation.py": ("unit", "component"),
 }
 

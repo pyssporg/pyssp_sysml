@@ -3,6 +3,7 @@
 __version__ = "0.5.0"
 
 from pyssp_sysml2.artifacts.analysis import generate_analysis
+from pyssp_sysml2.artifacts.preflight import check_fmu_interfaces
 from pyssp_sysml2.artifacts.ssd import build_ssd, generate_ssd
 from pyssp_sysml2.artifacts.ssm import generate_parameter_mappings
 from pyssp_sysml2.artifacts.ssp import generate_ssp
@@ -12,6 +13,7 @@ from pyssp_sysml2.sysml.sync import sync_sysml_from_ssd
 
 __all__ = [
     "build_ssd",
+    "check_fmu_interfaces",
     "generate_ssd",
     "generate_ssp",
     "generate_parameter_sets",

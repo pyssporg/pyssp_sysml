@@ -19,7 +19,7 @@ def _write_architecture(
     source: str | None,
     implementation: str | None = "CoSimulation",
     parameterized: bool = True,
-    flat_connector: bool = False,
+    flat_connector: bool | str = False,
 ) -> Path:
     fields = []
     if source is not None:
@@ -60,8 +60,8 @@ def _write_architecture(
             composition_parameters=composition_parameters,
             flat_connector=(
                 "attribute pyssp_flat_connector : Boolean = true;"
-                if flat_connector
-                else ""
+                if flat_connector is True
+                else (flat_connector if isinstance(flat_connector, str) else "")
             ),
             COMPOSITION_NAME=COMPOSITION_NAME,
         ),

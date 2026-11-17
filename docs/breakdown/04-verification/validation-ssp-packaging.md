@@ -9,6 +9,14 @@ status: current
 
 # Validation of SSP packaging
 
+`pyssp validate` exposes the name, readability, and implementation checks
+before generation: `check_fmu_interfaces` reports every missing connector name
+and unreadable or missing declared source, and `--implementation` checks the
+declared metadata. Pass the same `--base-index` as generation so parameter
+arrays compare against the indices the generator will emit. It writes no
+artifact. `generate ssp` keeps its late check unchanged: the archive is only
+written when the packaged SSD and FMUs agree.
+
 - A declared FMU source must exist unless `--allow-missing-fmus` exports the
   design.
 - A file source must be a `.fmu` file or an extracted FMU directory.

@@ -13,6 +13,8 @@ Belongs here:
 
 - SSD, SSV, SSM, analysis-descriptor, and packaged-SSP emission.
 - SSD to SysML synthesis and `sync ssd`.
+- pre-generation validation that reports model and FMU-interface problems
+  without writing an artifact (`pyssp validate`).
 - the `pyssp` CLI as the public surface.
 - `core/paths.py` and the parameter-dialect synthesis in `parameters/synthesis/`.
 

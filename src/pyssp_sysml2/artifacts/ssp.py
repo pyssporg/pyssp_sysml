@@ -18,7 +18,6 @@ import json
 import tempfile
 import warnings
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 
 from pyssp_standard import (
@@ -31,8 +30,6 @@ from pyssp_standard import (
     validate_component_fmu,
 )
 
-from pycps_sysml2.core.fmi_helpers import fmu_filename
-from pycps_sysml2.metadata.fmu_metadata import fmu_metadata
 from pycps_sysml2.metadata.roles import (
     SSP_ROLES,
     is_analysis,
@@ -40,12 +37,9 @@ from pycps_sysml2.metadata.roles import (
     validate_role_markers,
 )
 from pycps_sysml2.metadata.ssp_metadata import ssp_metadata
-from pycps_sysml2.model import Architecture, PartDefinition, load
+from pycps_sysml2.model import load
 from pycps_sysml2.parameters.constraints import enforce_constraints
-from pycps_sysml2.parameters.dialect.composition import (
-    component_definitions,
-    validate_parameter_dialect,
-)
+from pycps_sysml2.parameters.dialect.composition import validate_parameter_dialect
 from pycps_sysml2.parameters.dialect.mapping import parameter_sets_for_generation
 from pycps_sysml2.parameters.policy import SSP_POLICY
 from pycps_sysml2.parameters.variation import (
@@ -53,75 +47,16 @@ from pycps_sysml2.parameters.variation import (
     resolve_selected,
 )
 
+from pyssp_sysml2.artifacts.preflight import (
+    _FmuResource,
+    _collect_fmu_resources,
+)
 from pyssp_sysml2.artifacts.ssd import build_ssd
 from pyssp_sysml2.artifacts.ssv import parameter_set_resource, write_parameter_set
 from pyssp_sysml2.core.paths import ensure_parent_dir
 
 DEFAULT_PARAMETER_SET_PREFIX = "resources/parameter_sets"
 SELECTION_ENTRY = "extra/org.pyssp/selection.json"
-
-
-@dataclass(frozen=True)
-class _FmuResource:
-    part_def: PartDefinition
-    source: Path | None
-    resource_name: str
-
-
-def _resolve_fmu_source(source: str, fmu_root: Path | None) -> Path:
-    path = Path(source).expanduser()
-    if not path.is_absolute():
-        path = (fmu_root or Path.cwd()) / path
-    return path.resolve()
-
-
-def _collect_fmu_resources(
-    architecture: Architecture,
-    system: PartDefinition,
-    fmu_root: Path | None,
-    *,
-    allow_missing: bool = False,
-) -> list[_FmuResource]:
-    resources: list[_FmuResource] = []
-    for part_def in component_definitions(architecture, system):
-        if part_def.parts:
-            continue
-
-        metadata = fmu_metadata(architecture, part_def)
-        resource_name = fmu_filename(part_def.name)
-        if metadata is None or not metadata.source:
-            # No FMU authored yet: the design structure leaves the component
-            # unpopulated (empty SSD source).
-            resources.append(_FmuResource(part_def, None, resource_name))
-            continue
-
-        source = _resolve_fmu_source(metadata.source, fmu_root)
-        if not source.exists():
-            if not allow_missing:
-                raise FileNotFoundError(
-                    f"FMU source for {part_def.name} does not exist: {source}"
-                )
-            resources.append(_FmuResource(part_def, None, resource_name))
-            continue
-        if source.is_file() and source.suffix.lower() != ".fmu":
-            raise ValueError(
-                f"FMU source for {part_def.name} must be a .fmu file or an "
-                f"extracted FMU directory, got: {source}"
-            )
-        if source.is_dir() and not (source / "modelDescription.xml").is_file():
-            raise FileNotFoundError(
-                "FMU directory does not contain modelDescription.xml: "
-                f"{source}"
-            )
-
-        resources.append(
-            _FmuResource(
-                part_def=part_def,
-                source=source,
-                resource_name=resource_name,
-            )
-        )
-    return resources
 
 
 def _iter_components(system: System):

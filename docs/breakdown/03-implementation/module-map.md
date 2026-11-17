@@ -14,9 +14,9 @@ status: current
 
 ```text
 src/pyssp_sysml2/
-├── __init__.py      canonical public surface: 8 generator functions
+├── __init__.py      canonical public surface: 8 generator functions plus check_fmu_interfaces
 ├── cli.py           `pyssp` entrypoint
-├── artifacts/       analysis.py ssd.py ssm.py ssp.py ssv.py
+├── artifacts/       analysis.py preflight.py ssd.py ssm.py ssp.py ssv.py
 ├── sysml/           generate.py sync.py
 ├── core/            paths.py (real); the rest are shims
 ├── metadata/        shims
@@ -46,7 +46,10 @@ imported here.
 
 Public functions: `build_ssd`, `generate_ssd`, `generate_parameter_sets`,
 `generate_parameter_mappings`, `generate_analysis`, `generate_ssp`,
-`generate_sysml_from_ssd`, and `sync_sysml_from_ssd`. Each path-based generator
-takes keyword-only `includes` for `pycps_sysml2.load(model, *includes)`; an
-empty sequence is the default and `--core-definitions` is off (`INFO-032`,
-`INFO-021`).
+`generate_sysml_from_ssd`, `sync_sysml_from_ssd`, and
+`check_fmu_interfaces`. Each path-based generator takes keyword-only `includes`
+for `pycps_sysml2.load(model, *includes)`; an empty sequence is the default and
+`--core-definitions` is off (`INFO-032`, `INFO-021`). `artifacts/preflight.py`
+owns the shared FMU source resolution (`_resolve_fmu_source`,
+`_collect_fmu_resources`) that `ssp.py` imports, and the read-only interface
+check behind `pyssp validate`.

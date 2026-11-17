@@ -8,12 +8,14 @@ from pathlib import Path
 from typing import Optional
 
 import pycps_sysml2
+from pycps_sysml2.parameters.dialect.composition import component_definitions
 
 from pyssp_sysml2.core.paths import (
     DEFAULT_ARCH_PATH,
     DEFAULT_COMPOSITION_NAME,
     GENERATED_DIR,
 )
+from pyssp_sysml2.artifacts.preflight import check_fmu_interfaces
 from pyssp_sysml2.artifacts.ssd import generate_ssd
 from pyssp_sysml2.artifacts.ssm import generate_parameter_mappings
 from pyssp_sysml2.artifacts.ssp import DEFAULT_PARAMETER_SET_PREFIX, generate_ssp
@@ -126,6 +128,55 @@ def main(argv: Optional[list[str]] = None) -> int:
         "sync", help="Sync external artifacts back into SysML"
     )
     sync_subparsers = sync_parser.add_subparsers(dest="artifact", required=True)
+
+    validate_parser = root_subparsers.add_parser(
+        "validate", help="Validate a model without writing an artifact"
+    )
+    validate_parser.add_argument(
+        "--architecture",
+        type=Path,
+        action="append",
+        default=None,
+        help=(
+            "Path to the SysML architecture; repeat to add definition roots "
+            "(first is the model)"
+        ),
+    )
+    validate_parser.add_argument(
+        "--composition",
+        required=True,
+        help="Top-level composition part definition name.",
+    )
+    validate_parser.add_argument(
+        "--fmu-root",
+        type=Path,
+        default=None,
+        help=(
+            "Base directory for relative fmu_meta.source paths "
+            "(default: current working directory)."
+        ),
+    )
+    validate_parser.add_argument(
+        "--core-definitions",
+        action="store_true",
+        default=False,
+        help="Merge the pycps_sysml2 dialect core definitions",
+    )
+    validate_parser.add_argument(
+        "--implementation",
+        default=None,
+        help=(
+            "Expected fmu_meta.implementation for every leaf component; "
+            "report a mismatch."
+        ),
+    )
+    validate_parser.add_argument(
+        "--no-fmu",
+        action="store_true",
+        dest="no_fmu",
+        help="Skip the FMU interface check.",
+    )
+    _add_base_index_arg(validate_parser)
 
     ssd_parser = generate_subparsers.add_parser(
         "ssd", help="Generate SystemStructure.ssd"
@@ -332,6 +383,45 @@ def main(argv: Optional[list[str]] = None) -> int:
         includes: list[Path] = list(architectures[1:])
         if getattr(args, "core_definitions", False):
             includes.append(pycps_sysml2.core_definitions())
+        if args.command == "validate":
+            architecture = pycps_sysml2.load(architecture_path, *includes)
+            report = pycps_sysml2.validate(architecture, args.composition)
+            print(report.format())
+            failed = sum(
+                1
+                for check in report.checks
+                if any(issue.code == check for issue in report.issues)
+            )
+            if not args.no_fmu:
+                problems = check_fmu_interfaces(
+                    architecture,
+                    args.composition,
+                    args.fmu_root,
+                    base_index=args.base_index,
+                )
+                if problems:
+                    for problem in problems:
+                        print(f"FAIL fmu-interfaces: {problem}")
+                    failed += 1
+                else:
+                    print("PASS fmu-interfaces")
+            if args.implementation is not None:
+                system = architecture.resolve_part(args.composition)
+                assert system is not None  # validate() raised otherwise
+                implementation_problems = pycps_sysml2.require_fmu_metadata(
+                    architecture,
+                    component_definitions(architecture, system),
+                    implementation=args.implementation,
+                )
+                if implementation_problems:
+                    for problem in implementation_problems:
+                        print(f"FAIL fmu-implementation: {problem}")
+                    failed += 1
+            if failed:
+                print(f"{failed} check(s) failed")
+                return 1
+            return 0
+
         if args.command == "generate" and args.artifact == "ssp":
             configuration = _parse_configuration(args.configuration)
             output = args.output or (GENERATED_DIR / f"{args.composition}.ssp")

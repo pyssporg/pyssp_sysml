@@ -9,6 +9,13 @@ status: current
 
 # Pre-flight checklist
 
+`pyssp validate` runs the model and FMU-interface checks in one pass and reports
+every failure without writing an artifact. The checklist below remains the human
+review; the command is the runnable subset:
+`check_fmu_interfaces` compares the expected SSD connector names with each FMU's
+`variable_names`, reading `pyssp_flat_connector` by value and using the same
+parameter `base_index` as the generator.
+
 - Markers exist: `ParameterInterface`, `ParameterSet`, and `FmuMetadata` when
   used.
 - Every port is typed by a marked interface.

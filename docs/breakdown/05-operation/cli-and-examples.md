@@ -20,20 +20,45 @@ Subcommands:
 - `pyssp generate sysml`
 - `pyssp generate analysis`
 - `pyssp sync ssd`
+- `pyssp validate`
 
 `generate ssd`, `ssv`, `ssm`, `ssp`, and `analysis` accept repeatable
 `--select KEY=VARIANT` values; `generate ssp` also accepts `--configuration`
 for the selection provenance.
 
-`ssp`, `ssd`, `ssv`, `ssm`, `analysis`, and `sync ssd` accept repeatable
-`--architecture` flags. The first occurrence is the model root; every later one
-is an included definition root forwarded as `includes`. `--core-definitions` is
-sugar for one such include, adding `pycps_sysml2.core_definitions()`
+`ssp`, `ssd`, `ssv`, `ssm`, `analysis`, `sync ssd`, and `validate` accept
+repeatable `--architecture` flags. The first occurrence is the model root;
+every later one is an included definition root forwarded as `includes`.
+`--core-definitions` is sugar for one such include, adding
+`pycps_sysml2.core_definitions()`
 (`SspModel`, `Analysis`, `Experiment`, `ParameterInterface`, `ParameterSet`,
 `FmuMetadata`, `SspMetadata`) after any repeated `--architecture` roots. It is
 off by default: without the flag a model must declare the markers it uses. The
 core definitions belong to `pycps_sysml2`; this package only passes the path to
 the loader.
+
+`pyssp validate` reports problems without writing an artifact. It runs the
+`pycps_sysml2` dialect validators, then compares every leaf component's expected
+SSD connector names with its FMU's `variable_names`, and optionally checks
+`fmu_meta.implementation` against `--implementation`:
+
+```bash
+pyssp validate \
+  --architecture examples/aircraft_subset \
+  --composition AircraftComposition \
+  --fmu-root .
+```
+
+`--composition` is required. `--no-fmu` skips the FMU interface check; the
+dialect and implementation checks still run. `--base-index` must match the
+generator's value: parameter arrays are 0-based by default and 1-based for
+OMC-built Modelica FMUs. Output is one line per check result:
+`report.format()` (`PASS <check>` or `FAIL <check>: <message>`), then
+`PASS fmu-interfaces` or one `FAIL fmu-interfaces: <problem>` per problem, then
+`FAIL fmu-implementation: ...` when `--implementation` is given and violated.
+Any failure ends with `N check(s) failed` and exits 1; a clean model exits 0.
+The Python surface is `pyssp_sysml2.check_fmu_interfaces(architecture,
+composition, fmu_root=None, *, base_index=0)`.
 
 `generate fmi` is gone. It prints an error naming `pyfmi_sysml2` and exits 1:
 

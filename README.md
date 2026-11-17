@@ -71,15 +71,16 @@ pip install -e .
 
 ## 2) Generate Artifacts (CLI)
 
-`pyssp` exposes two command families:
+`pyssp` exposes three command families:
 
 ```bash
 pyssp generate <ssp|ssd|ssv|ssm|analysis|sysml> [options]
 pyssp sync ssd [options]
+pyssp validate [options]
 ```
 
 Common options for architecture-based subcommands (`ssp`, `ssd`, `ssv`, `ssm`,
-`analysis`, `sync ssd`):
+`analysis`, `sync ssd`, `validate`):
 
 - `--architecture`: path to the SysML architecture (a folder of `.sysml` files,
   or a file inside it). Repeat to add definition roots: the first occurrence is
@@ -595,6 +596,7 @@ pyssp generate ssp --help
 pyssp generate sysml --help
 pyssp sync --help
 pyssp sync ssd --help
+pyssp validate --help
 ```
 
 If `pyssp` is not available on your shell path:
