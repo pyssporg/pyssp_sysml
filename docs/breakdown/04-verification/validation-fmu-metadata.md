@@ -10,6 +10,13 @@ status: current
 # Validation of FMU metadata
 
 - A metadata usage must be typed by a def marked `:> FmuMetadata`.
+- A `:> FmuModel` part with no authored metadata inherits the marker's unfilled
+  `fmu_meta` slot; that is "no FMU metadata" (`require_fmu_metadata` reports it),
+  not a direct-schema error.
+- A locally declared `fmu_meta` typed by `FmuMetadata` itself is rejected as
+  "schema directly"; declare a concrete `:> FmuMetadata` definition instead.
+- A local same-name concrete usage shadows the inherited slot; a concrete
+  container under any other name is accepted and the placeholder is ignored.
 - The marker definition `FmuMetadata` must exist.
 - At most one metadata attribute per part.
 - Metadata is allowed only on leaf parts. A part with effective subparts and

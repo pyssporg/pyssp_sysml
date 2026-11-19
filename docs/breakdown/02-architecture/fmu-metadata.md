@@ -11,23 +11,30 @@ status: current
 
 ## Typed metadata
 
-Structured FMU metadata uses a typed value definition:
+The core vocabulary supplies `FmuMetadata` and the `FmuModel` marker; the marker
+declares the canonical slot `attribute fmu_meta : FmuMetadata;`. Author a
+concrete definition that specializes the schema, then fill the slot by the same
+name (any other usage name is accepted too):
 
 ```sysml
-attribute def FmuMetadata {
-  attribute source : String;
-  attribute implementation : String;
-}
+private import PysspCore::*;
 
 attribute def AutopilotFmu :> FmuMetadata {
   attribute source = "build/fmus/AutopilotModule.fmu";
   attribute implementation = "CoSimulation";
 }
 
-part def AutopilotModule {
+part def AutopilotModule :> FmuModel {
   attribute fmu_meta : AutopilotFmu;
 }
 ```
+
+A `:> FmuModel` part that authors no metadata inherits the unfilled slot, which
+means "no FMU metadata": `fmu_metadata` returns `None` and
+`require_fmu_metadata` reports "no FMU metadata". Declaring
+`attribute fmu_meta : FmuMetadata;` locally is still rejected ("schema
+directly"); the schema is a base to specialize, not a container to use. A local
+same-name concrete usage shadows the inherited slot.
 
 Metadata is recognized by type, not by usage name, and is allowed only on leaf
 component definitions (`INFO-002`). `pycps_sysml2` supplies `FmuMetadata` and
