@@ -38,8 +38,10 @@ part def Composition {
 container it keeps the 0 and 3600 defaults. `generate sysml` synthesizes a
 local attribute def of this shape when the SSD carries an experiment.
 
-Flattening is not model data. `pyssp generate ssd --flat-connector` selects
-scalar connector names; the same document exports either way (`INFO-033`).
+Flattening is not model data. A port with a single `value` member is scalar by
+shape and always exports the port name; `pyssp generate ssd --flat-connector`
+additionally flattens grouped ports, and the same document exports either way
+(`INFO-033`).
 
 The `pyssp_*` vocabulary was removed in dialect 0.3.0. A remaining name is a
 migration error naming its replacement: a `pyssp_*` default-experiment

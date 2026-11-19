@@ -35,6 +35,7 @@ from pyssp_sysml2.parameters.synthesis.generation import synthesize_parameter_di
 from pyssp_sysml2.sysml.generate import (
     SCALAR_ATTRIBUTE_NAME,
     _ensure_system_part_def,
+    _flipped_signature,
     _merge_type_names,
     _part_name_from_component,
     _type_name_from_connector,
@@ -55,33 +56,74 @@ def _load_architecture(
     return load(architecture_path, *includes)
 
 
-def _collect_component_ports(component: Component) -> tuple[dict[str, dict[str, str]], dict[str, str]]:
+def _collect_component_ports(
+    component: Component,
+) -> tuple[
+    dict[str, dict[str, str]],
+    dict[str, str],
+    dict[str, dict[str, str | None]],
+]:
     """Group a component's connectors into per-port attributes and directions."""
     port_attributes: dict[str, dict[str, str]] = {}
     port_directions: dict[str, str] = {}
+    member_kinds: dict[str, dict[str, str]] = {}
     for connector in component.connectors:
         port_name, attr_name = split_connector_or_scalar(connector.name)
         port_attributes.setdefault(port_name, {})[attr_name] = _type_name_from_connector(connector)
         if connector.kind == "output":
             port_directions.setdefault(port_name, "out")
+            member_kinds.setdefault(port_name, {})[attr_name] = "out"
+        elif connector.kind == "input":
+            port_directions.setdefault(port_name, "in")
+            member_kinds.setdefault(port_name, {})[attr_name] = "in"
         else:
             port_directions.setdefault(port_name, "in")
-    return port_attributes, port_directions
+
+    member_directions: dict[str, dict[str, str | None]] = {}
+    for port_name, attributes in port_attributes.items():
+        kinds = set(member_kinds.get(port_name, {}).values())
+        if len(kinds) > 1:
+            member_directions[port_name] = {
+                name: member_kinds[port_name].get(name) for name in attributes
+            }
+        else:
+            member_directions[port_name] = {name: None for name in attributes}
+    return port_attributes, port_directions, member_directions
 
 
-def _port_signature(port_attributes: dict[str, str]) -> tuple[tuple[str, str], ...]:
-    """Canonical (attribute, type) signature for a port, mirroring build_architecture_from_ssd."""
+def _port_signature(
+    port_attributes: dict[str, str],
+    member_directions: Mapping[str, str | None],
+) -> tuple[tuple[str, str, str | None], ...]:
+    """Canonical (attribute, type, direction) signature for a port, mirroring build_architecture_from_ssd."""
     is_scalar = len(port_attributes) <= 1
     canonical = {
-        SCALAR_ATTRIBUTE_NAME if is_scalar else attr_name: _merge_type_names([attr_type])
+        SCALAR_ATTRIBUTE_NAME if is_scalar else attr_name: (
+            _merge_type_names([attr_type]),
+            member_directions.get(attr_name),
+        )
         for attr_name, attr_type in port_attributes.items()
     }
-    return tuple(sorted(canonical.items()))
-
-
-def _port_def_signature(port_def: PortDefinition) -> tuple[tuple[str, str], ...]:
     return tuple(
-        sorted((attr.name, attr.effective_type_name) for attr in port_def.attributes.values())
+        sorted(
+            (
+                name,
+                attr_type,
+                direction,
+            )
+            for name, (attr_type, direction) in canonical.items()
+        )
+    )
+
+
+def _port_def_signature(
+    port_def: PortDefinition,
+) -> tuple[tuple[str, str, str | None], ...]:
+    return tuple(
+        sorted(
+            (attr.name, attr.effective_type_name, attr.direction)
+            for attr in port_def.attributes.values()
+        )
     )
 
 
@@ -116,21 +158,30 @@ def _synthesize_component_part_def(
         source_file=INFERRED_PARTS_FILENAME,
     )
 
-    port_attributes, port_directions = _collect_component_ports(component)
+    port_attributes, port_directions, member_directions = _collect_component_ports(component)
     for port_name in sorted(port_attributes):
-        signature = _port_signature(port_attributes[port_name])
+        signature = _port_signature(
+            port_attributes[port_name], member_directions[port_name]
+        )
         port_def = _find_port_def_by_signature(architecture, signature)
+        conjugated = False
+        if port_def is None:
+            port_def = _find_port_def_by_signature(
+                architecture, _flipped_signature(signature)
+            )
+            conjugated = port_def is not None
         if port_def is None:
             port_def_name = f"Port_{len(architecture.port_definitions) + 1}"
             port_def = PortDefinition(
                 name=port_def_name,
                 source_file=INFERRED_PARTS_FILENAME,
             )
-            for attr_name, attr_type in signature:
+            for attr_name, attr_type, attr_direction in signature:
                 port_def.attributes[attr_name] = Attribute(
                     name=attr_name,
                     type_name=attr_type,
                     value=None,
+                    direction=attr_direction,
                 )
             architecture.add_port_def(port_def)
 
@@ -138,6 +189,7 @@ def _synthesize_component_part_def(
             name=port_name,
             direction=port_directions.get(port_name, "in"),
             type_name=port_def.name,
+            conjugated=conjugated,
         )
 
     return part_name, part_def

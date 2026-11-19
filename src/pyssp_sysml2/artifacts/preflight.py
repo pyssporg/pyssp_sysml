@@ -34,7 +34,9 @@ from pycps_sysml2.parameters.dialect.markers import is_parameter_interface
 from pycps_sysml2.parameters.policy import SSP_POLICY
 
 from pyssp_sysml2.artifacts.ssd import (
+    _attribute_indices,
     _connector_name,
+    _is_scalar_port,
     _port_indices,
 )
 
@@ -116,11 +118,20 @@ def _expected_connector_names(
         port_def = architecture.resolve_port(port_usage)
         if port_def is None or is_parameter_interface(port_def):
             continue
+        scalar = _is_scalar_port(port_def)
         for index in _port_indices(port_usage):
             for attribute in port_def.attributes.values():
-                expected.append(
-                    _connector_name(port_usage, attribute.name, flat, index)
-                )
+                for attribute_index in _attribute_indices(attribute, port_usage):
+                    expected.append(
+                        _connector_name(
+                            port_usage,
+                            attribute,
+                            flat,
+                            index,
+                            attribute_index,
+                            scalar=scalar,
+                        )
+                    )
 
     if parameter_model and parameter_interface(architecture, part_def) is not None:
         for attribute in parameter_declarations(architecture, part_def):

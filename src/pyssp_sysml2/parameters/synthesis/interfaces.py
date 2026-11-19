@@ -21,6 +21,9 @@ from pycps_sysml2.parameters.dialect.composition import (
     AttributeKind,
     classify_attribute,
 )
+from pycps_sysml2.parameters.dialect.declarations import (
+    require_undirected_members,
+)
 from pycps_sysml2.parameters.dialect.markers import (
     PARAMETER_INTERFACE_MARKER,
     PARAMETER_SET_MARKER,
@@ -161,6 +164,13 @@ def ensure_component_interface(
                 f"Parameter port {part_def.name}.parameters must be "
                 f"undirected or 'in', got '{port_usage.direction}'"
             )
+        if port_usage.conjugated:
+            raise ValueError(
+                f"Parameter port {part_def.name}.parameters is typed by the "
+                f"conjugated definition '~{interface.name}'; parameter members "
+                "are undirected, so conjugation has no meaning"
+            )
+        require_undirected_members(interface)
         _reconcile_interface(interface, attributes)
         return interface
 

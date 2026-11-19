@@ -356,3 +356,40 @@ def test_string_escapes_roundtrip(tmp_path: Path) -> None:
     attributes = reloaded.part_definitions["Text"].attributes
     assert attributes["lines"].value == "one\ntwo"
     assert attributes["path"].value == r"C:\temp\new"
+
+
+def test_ssd_sysml_ssd_preserves_member_directions(tmp_path: Path) -> None:
+    """A mixed SSD port becomes directed SysML members and regenerates intact."""
+    ssd_path = tmp_path / "source" / "SystemStructure.ssd"
+    ssd_path.parent.mkdir()
+    with SSD(ssd_path, mode="w") as ssd:
+        top = ssd.new_system("Mixed")
+        ssd.rename("Mixed")
+        widget = top.add_component("widget", source="resources/Widget.fmu")
+        widget.add_connector(name="sig.p", kind="input", type_name="Real")
+        widget.add_connector(name="sig.m", kind="output", type_name="Real")
+
+    architecture_dir = tmp_path / "architecture"
+    architecture_dir.mkdir()
+    generated = architecture_dir / "architecture.sysml"
+    generate_sysml_from_ssd(ssd_path, generated)
+
+    text = generated.read_text()
+    assert "in attribute p : Real;" in text
+    assert "out attribute m : Real;" in text
+    assert "inout port sig : " in text
+
+    architecture = load(architecture_dir)
+    widget_def = architecture.get_part_def("Widget")
+    sig_def = architecture.resolve_port(widget_def.ports["sig"])
+    assert sig_def is not None
+    assert sig_def.attributes["p"].direction == "in"
+    assert sig_def.attributes["m"].direction == "out"
+
+    regenerated = tmp_path / "regenerated.ssd"
+    generate_ssd(architecture_dir, regenerated, "Mixed")
+    with SSD(regenerated, mode="r") as ssd:
+        assert ssd.system is not None
+        [component] = ssd.system.elements
+        connectors = {connector.name: connector.kind for connector in component.connectors}
+    assert connectors == {"sig.p": "input", "sig.m": "output"}

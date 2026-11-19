@@ -426,3 +426,42 @@ def test_generate_sysml_from_ssd_writes_boundary_connections(tmp_path: Path) -> 
     text = _architecture_text(output)
 
     assert_matches_fixture(text, "generate-sysml/boundary-connections-dotted.sysml")
+
+
+def test_generate_sysml_from_ssd_writes_one_def_and_a_conjugated_usage(
+    tmp_path: Path,
+) -> None:
+    """Flipped connector kinds reuse one definition, written as ``~P``."""
+    ssd_path = tmp_path / "conjugated.ssd"
+    with SSD(ssd_path, mode="w") as ssd:
+        top = ssd.new_system("Conjugated")
+        ssd.rename("Conjugated")
+
+        src = top.add_component("src", source="resources/Source.fmu")
+        src.add_connector(name="feed.p", kind="output", type_name="Real")
+        src.add_connector(name="feed.m", kind="input", type_name="Real")
+
+        dst = top.add_component("dst", source="resources/Sink.fmu")
+        dst.add_connector(name="feed.p", kind="input", type_name="Real")
+        dst.add_connector(name="feed.m", kind="output", type_name="Real")
+
+        top.add_connection(
+            start_element="src",
+            start_connector="feed.p",
+            end_element="dst",
+            end_connector="feed.p",
+        )
+        top.add_connection(
+            start_element="src",
+            start_connector="feed.m",
+            end_element="dst",
+            end_connector="feed.m",
+        )
+
+    output = tmp_path / "conjugated.sysml"
+    generate_sysml_from_ssd(ssd_path, output)
+    text = output.read_text(encoding="utf-8")
+
+    assert text.count("port def ") == 1
+    assert " port feed : Port_1;" in text
+    assert " port feed : ~Port_1;" in text

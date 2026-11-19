@@ -231,6 +231,23 @@ def test_port_directions(tmp_path) -> None:
     assert ports["a"].type_name == "Signal"
 
 
+def test_port_member_directions(tmp_path) -> None:
+    """Port-definition attribute members keep their declared in/out direction."""
+    model_file = tmp_path / "directions.sysml"
+    write_model(
+        model_file,
+        fixture_text("sysml-model/directions.sysml"),
+    )
+
+    port_def = load(model_file).port_definitions["MixedSignal"]
+
+    assert list(port_def.attributes) == ["p", "m", "u"]
+    assert port_def.attributes["p"].direction == "in"
+    assert port_def.attributes["p"].multiplicity == "3"
+    assert port_def.attributes["m"].direction == "out"
+    assert port_def.attributes["u"].direction is None
+
+
 def test_part_definition_doc(tmp_path) -> None:
     """A part def's doc comment becomes PartDefinition.doc."""
     model_file = tmp_path / "doc.sysml"
@@ -469,6 +486,7 @@ def _architecture_summary(architecture: Architecture) -> dict:
                         attribute.effective_type_name,
                         attribute.multiplicity,
                         attribute.value,
+                        attribute.direction,
                     )
                     for attribute in port_def.attributes.values()
                 },
@@ -484,6 +502,7 @@ def _architecture_summary(architecture: Architecture) -> dict:
                         attribute.effective_type_name,
                         attribute.multiplicity,
                         attribute.value,
+                        attribute.direction,
                     )
                     for attribute in attribute_def.attributes.values()
                 },
@@ -498,6 +517,7 @@ def _architecture_summary(architecture: Architecture) -> dict:
                         attribute.effective_type_name,
                         attribute.multiplicity,
                         attribute.value,
+                        attribute.direction,
                     )
                     for attribute in part_def.attributes.values()
                 },
@@ -552,6 +572,29 @@ def test_export_round_trip(tmp_path) -> None:
     assert reloaded.port_definitions["Signal"].doc == "A signal."
     assert reloaded.part_definitions["Source"].doc == "Source doc."
     assert reloaded.requirement_definitions["Connected"].text == "src must connect to dst"
+
+
+def test_port_member_directions_round_trip(tmp_path) -> None:
+    """load → export → load keeps each port member's own direction."""
+    source = tmp_path / "directions.sysml"
+    write_model(
+        source,
+        fixture_text("sysml-model/directions.sysml"),
+    )
+
+    architecture = load(source)
+    exported = architecture.export_declared()["directions.sysml"]
+    assert "in attribute p : Real[3];" in exported
+    assert "out attribute m : Real;" in exported
+    assert "attribute u : Real;" in exported
+
+    output_dir = tmp_path / "output"
+    output_dir.mkdir()
+    (output_dir / "directions.sysml").write_text(exported, encoding="utf-8")
+
+    reloaded = load(output_dir)
+    assert _architecture_summary(reloaded) == _architecture_summary(architecture)
+    assert reloaded.port_definitions["MixedSignal"].attributes["p"].direction == "in"
 
 
 def test_quoted_names_load_unquoted_and_round_trip(tmp_path) -> None:

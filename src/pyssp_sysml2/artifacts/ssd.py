@@ -29,7 +29,9 @@ from pycps_sysml2.metadata.roles import (
 from pycps_sysml2.metadata.ssp_metadata import ssp_metadata
 from pycps_sysml2.model import (
     Architecture,
+    Attribute,
     PartDefinition,
+    PortDefinition,
     PortUsage,
     load,
 )
@@ -105,6 +107,46 @@ def _endpoint_port_def(
     return port_def, port_usage
 
 
+def _is_scalar_port(port_def: PortDefinition) -> bool:
+    """True for a port that names one FMU variable rather than a group.
+
+    The loader normalizes a connector without a dot to a port with one member
+    named ``value``; the same shape exports that member as the connector name,
+    so a scalar signal keeps its FMU variable name.
+    """
+    return tuple(port_def.attributes) == ("value",)
+
+
+def _ports_compatible(source: PortDefinition, destination: PortDefinition) -> bool:
+    """True when two port definitions describe the same interface.
+
+    Direction is flow metadata, not type: a mirrored definition with the same
+    member names and types is a compatible endpoint, which is how a mixed
+    ``in``/``out`` port is reused on both sides of a connection.
+    """
+    if source is destination:
+        return True
+    if source.attributes.keys() != destination.attributes.keys():
+        return False
+    return all(
+        source.attributes[name].effective_type_name
+        == destination.attributes[name].effective_type_name
+        for name in source.attributes
+    )
+
+
+def _member_direction(attribute: Attribute, port_usage: PortUsage) -> str:
+    """Resolved SysML direction of one port member on this usage.
+
+    The definition's member direction wins over the usage and is flipped on a
+    conjugated (``~P``) usage; a member without its own direction falls back to
+    the usage. ``inout`` and undirected members fall back to ``in``, matching
+    the FMI input fallback.
+    """
+    direction = port_usage.effective_member_direction(attribute)
+    return "out" if direction == "out" else "in"
+
+
 def _port_indices(port_usage: PortUsage) -> tuple[int | None, ...]:
     """Connector indices for one port usage; 1-based to match FMI arrays."""
     if not port_usage.multiplicity:
@@ -117,17 +159,52 @@ def _multiplicity_text(port_usage: PortUsage) -> str:
     return f"[{port_usage.multiplicity}]" if port_usage.multiplicity else ""
 
 
+def _attribute_indices(
+    attribute: Attribute, port_usage: PortUsage
+) -> tuple[int | None, ...]:
+    """Connector indices for one port attribute; 1-based to match FMI arrays."""
+    if not attribute.multiplicity:
+        return (None,)
+    name = f"{port_usage.name}.{attribute.name}"
+    try:
+        count = fixed_count(attribute.multiplicity, name)
+    except ValueError as error:
+        raise ValueError(f"Port attribute '{name}': {error}") from None
+    return tuple(range(1, count + 1))
+
+
+def _attribute_text(attribute: Attribute) -> str:
+    return f"[{attribute.multiplicity}]" if attribute.multiplicity else ""
+
+
 def _connector_name(
     port_usage: PortUsage,
-    attribute_name: str,
+    attribute: Attribute,
     flat: bool,
     index: int | None,
+    attribute_index: int | None,
+    *,
+    scalar: bool,
 ) -> str:
     port = port_usage.name if index is None else f"{port_usage.name}[{index}]"
-    return port if flat else f"{port}.{attribute_name}"
+    if flat or scalar:
+        if attribute.multiplicity:
+            raise ValueError(
+                f"Flat connector naming cannot represent array attribute "
+                f"'{port_usage.name}.{attribute.name}"
+                f"{_attribute_text(attribute)}'; export without flat_connector"
+            )
+        return port
+    member = (
+        attribute.name
+        if attribute_index is None
+        else f"{attribute.name}[{attribute_index}]"
+    )
+    return f"{port}.{member}"
 
 
 def _check_boundary_direction(
+    architecture: Architecture,
     system: PartDefinition,
     part_name: str | None,
     port_name: str,
@@ -142,8 +219,22 @@ def _check_boundary_direction(
     if part_name is not None:
         return
     port_usage = system.ports[port_name]
+    port_def = architecture.resolve_port(port_usage)
+    if port_def is None:
+        raise ValueError("Port definition not connected")
+    side = "start" if expected_direction == "in" else "end"
+    if port_def.attributes:
+        for attribute in port_def.attributes.values():
+            direction = _member_direction(attribute, port_usage)
+            if direction != expected_direction:
+                raise ValueError(
+                    f"Boundary port '{port_name}' of '{system.name}' member "
+                    f"'{attribute.name}' is declared as '{direction}' but is "
+                    f"used as the {side} of a connection; boundary ports are "
+                    "inputs at the start and outputs at the end"
+                )
+        return
     if port_usage.direction != expected_direction:
-        side = "start" if expected_direction == "in" else "end"
         raise ValueError(
             f"Boundary port '{port_name}' of '{system.name}' is declared as "
             f"'{port_usage.direction}' but is used as the {side} of a "
@@ -186,16 +277,25 @@ def _add_part_connectors(
         if is_parameter_interface(port_def):
             # Emitted by the parameter branch below, flattened to member names.
             continue
+        scalar = _is_scalar_port(port_def)
         for index in _port_indices(port_usage):
             for attribute in port_def.attributes.values():
-                connector_name = _connector_name(
-                    port_usage, attribute.name, flat, index
-                )
-                element.add_connector(
-                    name=connector_name,
-                    kind=to_fmi_direction_definition(port_usage.direction),
-                    type_name=attribute.effective_type_name,
-                )
+                for attribute_index in _attribute_indices(attribute, port_usage):
+                    connector_name = _connector_name(
+                        port_usage,
+                        attribute,
+                        flat,
+                        index,
+                        attribute_index,
+                        scalar=scalar,
+                    )
+                    element.add_connector(
+                        name=connector_name,
+                        kind=to_fmi_direction_definition(
+                            _member_direction(attribute, port_usage)
+                        ),
+                        type_name=attribute.effective_type_name,
+                    )
 
     has_interface = parameter_interface(architecture, part_def) is not None
     if parameter_model and has_interface:
@@ -229,11 +329,13 @@ def _add_connections(
         dst_port_def, dst_port_usage = _endpoint_port_def(
             part_def, architecture, conn.destination_part, conn.destination_port
         )
-        _check_boundary_direction(part_def, conn.source_part, conn.source_port, "in")
         _check_boundary_direction(
-            part_def, conn.destination_part, conn.destination_port, "out"
+            architecture, part_def, conn.source_part, conn.source_port, "in"
         )
-        if type_check and src_port_def is not dst_port_def:
+        _check_boundary_direction(
+            architecture, part_def, conn.destination_part, conn.destination_port, "out"
+        )
+        if type_check and not _ports_compatible(src_port_def, dst_port_def):
             raise ValueError(
                 f"Src {conn.source_port} and dest port "
                 f"{conn.destination_port} must be same type"
@@ -249,17 +351,51 @@ def _add_connections(
                 f"{dst_port_usage.name}{_multiplicity_text(dst_port_usage)}"
             )
         for index in src_indices:
-            for attribute_name in src_port_def.attributes:
-                target_system.add_connection(
-                    start_element=conn.source_part,
-                    start_connector=_connector_name(
-                        src_port_usage, attribute_name, flat, index
-                    ),
-                    end_element=conn.destination_part,
-                    end_connector=_connector_name(
-                        dst_port_usage, attribute_name, flat, index
-                    ),
+            for src_attribute in src_port_def.attributes.values():
+                dst_attribute = dst_port_def.attributes.get(src_attribute.name)
+                if dst_attribute is None:
+                    # Different port types: keep naming by the source member.
+                    dst_attribute = src_attribute
+                    dst_attribute_indices = _attribute_indices(
+                        src_attribute, src_port_usage
+                    )
+                else:
+                    dst_attribute_indices = _attribute_indices(
+                        dst_attribute, dst_port_usage
+                    )
+                src_attribute_indices = _attribute_indices(
+                    src_attribute, src_port_usage
                 )
+                if src_attribute_indices != dst_attribute_indices:
+                    raise ValueError(
+                        f"Connection '{conn.key}' joins attributes with "
+                        f"different multiplicity: "
+                        f"{src_port_usage.name}.{src_attribute.name}"
+                        f"{_attribute_text(src_attribute)} and "
+                        f"{dst_port_usage.name}.{dst_attribute.name}"
+                        f"{_attribute_text(dst_attribute)}"
+                    )
+                for attribute_index in src_attribute_indices:
+                    target_system.add_connection(
+                        start_element=conn.source_part,
+                        start_connector=_connector_name(
+                            src_port_usage,
+                            src_attribute,
+                            flat,
+                            index,
+                            attribute_index,
+                            scalar=_is_scalar_port(src_port_def),
+                        ),
+                        end_element=conn.destination_part,
+                        end_connector=_connector_name(
+                            dst_port_usage,
+                            dst_attribute,
+                            flat,
+                            index,
+                            attribute_index,
+                            scalar=_is_scalar_port(dst_port_def),
+                        ),
+                    )
 
 
 def _write_elements(
@@ -339,7 +475,8 @@ def build_ssd(
     ``flat_connector`` selects the connector naming style: ``False`` (the
     default) emits ``port.member`` names, ``True`` emits one ``port`` name per
     member. Flattening is an export option, never model data, so the same
-    architecture can be exported both ways.
+    architecture can be exported both ways. Flat naming has no slot for a
+    per-element index, so a fixed-length attribute array is rejected under it.
     """
     validate_role_markers(architecture)
     if is_analysis(architecture, system):

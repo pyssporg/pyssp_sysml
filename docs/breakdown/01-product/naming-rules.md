@@ -15,7 +15,7 @@ status: current
   SSD and SSV artifacts, `pyfmi_sysml2` writes it into FMI artifacts, and the
   SysML exporter re-quotes it (`INFO-005`).
 - An SSD connector name is `port.attribute` for a grouped port and the port name
-  alone for a flat port. A flat port named `'consumerFeed.X[1]'` produces the
+  alone for a scalar port (one member named `value`) or a flattened export. A flat port named `'consumerFeed.X[1]'` produces the
   connector `consumerFeed.X[1]`, so an FMU variable that is not a SysML
   identifier can be one flat port.
 - A fixed port multiplicity expands to indexed connectors and connections:

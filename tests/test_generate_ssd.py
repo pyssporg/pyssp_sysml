@@ -314,6 +314,127 @@ def test_port_multiplicity_expands_connectors_and_connections(tmp_path) -> None:
     ]
 
 
+def test_generate_ssd_uses_member_directions_on_a_mixed_port(tmp_path) -> None:
+    """A member's direction overrides its usage; unmarked members fall back to input."""
+    architecture_dir = tmp_path / "arch"
+    write_model(
+        architecture_dir / "model.sysml",
+        fixture_text("generate-ssd/member-directions.sysml"),
+    )
+
+    output_path = tmp_path / "SystemStructure.ssd"
+    generate_ssd(architecture_dir, output_path, COMPOSITION_NAME)
+
+    assert _ssd_summary(output_path) == [
+        "component widget",
+        "  input:fallback.n:Real",
+        # sig.p[1..3]: one connector per array element.
+        "  input:sig.p[1]:Real",
+        "  input:sig.p[2]:Real",
+        "  input:sig.p[3]:Real",
+        "  output:sig.m:Real",
+    ]
+
+
+def test_array_attribute_connection_expands_per_element(tmp_path) -> None:
+    """Two matching array members connect element by element."""
+    architecture_dir = tmp_path / "arch"
+    write_model(
+        architecture_dir / "model.sysml",
+        fixture_text("generate-ssd/array-attribute.sysml"),
+    )
+
+    output_path = tmp_path / "SystemStructure.ssd"
+    generate_ssd(architecture_dir, output_path, "System")
+
+    assert _ssd_summary(output_path) == [
+        "component sink",
+        "  input:sigIn.p[1]:Real",
+        "  input:sigIn.p[2]:Real",
+        "  input:sigIn.p[3]:Real",
+        "component source",
+        "  output:sig.p[1]:Real",
+        "  output:sig.p[2]:Real",
+        "  output:sig.p[3]:Real",
+        "connection source.sig.p[1] -> sink.sigIn.p[1]",
+        "connection source.sig.p[2] -> sink.sigIn.p[2]",
+        "connection source.sig.p[3] -> sink.sigIn.p[3]",
+    ]
+
+
+def test_array_attributes_with_unequal_lengths_are_rejected(tmp_path) -> None:
+    architecture_dir = tmp_path / "arch"
+    write_model(
+        architecture_dir / "model.sysml",
+        fixture_text("generate-ssd/array-attribute-mismatch.sysml"),
+    )
+
+    with pytest.raises(ValueError, match="attributes with different multiplicity"):
+        generate_ssd(
+            architecture_dir,
+            tmp_path / "out.ssd",
+            "System",
+            type_check=False,
+        )
+
+
+def test_variable_array_attribute_is_rejected(tmp_path) -> None:
+    """A variable range cannot become a fixed set of connectors."""
+    architecture_dir = tmp_path / "arch"
+    write_model(
+        architecture_dir / "model.sysml",
+        fixture_text("generate-ssd/array-attribute-variable.sysml"),
+    )
+
+    with pytest.raises(ValueError, match="Port attribute 'sig.p'.*multiplicity"):
+        generate_ssd(architecture_dir, tmp_path / "out.ssd", "System")
+
+
+def test_boundary_array_attribute_expands_per_element(tmp_path) -> None:
+    """A boundary port with an array member wires each element like a component."""
+    architecture_dir = tmp_path / "arch"
+    write_model(
+        architecture_dir / "model.sysml",
+        fixture_text("generate-ssd/boundary-array.sysml"),
+    )
+
+    output_path = tmp_path / "SystemStructure.ssd"
+    generate_ssd(architecture_dir, output_path, "System")
+
+    with SSD(output_path, mode="r") as ssd:
+        top = ssd.system
+        assert [connector.name for connector in top.connectors] == [
+            "u.p[1]",
+            "u.p[2]",
+            "u.p[3]",
+        ]
+        assert [
+            (c.start_element, c.start_connector, c.end_element, c.end_connector)
+            for c in top.connections
+        ] == [
+            (None, "u.p[1]", "inner", "u.p[1]"),
+            (None, "u.p[2]", "inner", "u.p[2]"),
+            (None, "u.p[3]", "inner", "u.p[3]"),
+        ]
+
+
+def test_flat_connector_rejects_an_array_attribute(tmp_path) -> None:
+    """Flat naming has no slot for a per-element index."""
+    architecture_dir = tmp_path / "arch"
+    write_model(
+        architecture_dir / "model.sysml",
+        fixture_text("generate-ssd/array-attribute.sysml"),
+    )
+
+    with pytest.raises(ValueError, match="Flat connector naming cannot represent"):
+        generate_ssd(
+            architecture_dir,
+            tmp_path / "out.ssd",
+            "System",
+            flat_connector=True,
+        )
+
+
 def test_connection_with_mismatched_multiplicity_is_rejected(tmp_path) -> None:
     architecture_dir = tmp_path / "mismatch"
     write_model(
@@ -346,4 +467,74 @@ def test_generate_ssd_merges_core_definitions_on_request(tmp_path: Path) -> None
         "component src",
         "  output:outSig.x:Real",
         "connection src.outSig.x -> dst.inSig.x",
+    ]
+
+
+def test_mirrored_port_definitions_connect_by_member(tmp_path) -> None:
+    """Direction is flow, not type: mirrored definitions are compatible ends."""
+    architecture_dir = tmp_path / "arch"
+    write_model(
+        architecture_dir / "model.sysml",
+        fixture_text("generate-ssd/mirrored-ports.sysml"),
+    )
+
+    output_path = tmp_path / "SystemStructure.ssd"
+    generate_ssd(architecture_dir, output_path, "System")
+
+    assert _ssd_summary(output_path) == [
+        "component sink",
+        "  input:feed.p:Real",
+        "  output:feed.m:Real",
+        "component source",
+        "  input:feed.m:Real",
+        "  output:feed.p:Real",
+        "connection source.feed.m -> sink.feed.m",
+        "connection source.feed.p -> sink.feed.p",
+    ]
+
+
+def test_conjugated_port_definition_serves_both_ends(tmp_path) -> None:
+    """One definition used as ``P`` and ``~P`` emits flipped connector kinds."""
+    architecture_dir = tmp_path / "arch"
+    write_model(
+        architecture_dir / "model.sysml",
+        fixture_text("generate-ssd/conjugated-ports.sysml"),
+    )
+    architecture = load(architecture_dir)
+    assert list(architecture.port_definitions) == ["Feed"]
+    assert architecture.part_definitions["Source"].ports["feed"].conjugated is False
+    assert architecture.part_definitions["Sink"].ports["feed"].conjugated is True
+
+    output_path = tmp_path / "SystemStructure.ssd"
+    generate_ssd(architecture_dir, output_path, "System")
+
+    assert _ssd_summary(output_path) == [
+        "component sink",
+        "  input:feed.p:Real",
+        "  output:feed.m:Real",
+        "component source",
+        "  input:feed.m:Real",
+        "  output:feed.p:Real",
+        "connection source.feed.m -> sink.feed.m",
+        "connection source.feed.p -> sink.feed.p",
+    ]
+
+
+def test_single_value_member_exports_as_a_scalar_connector(tmp_path) -> None:
+    """A port whose only member is ``value`` keeps the FMU variable name."""
+    architecture_dir = tmp_path / "arch"
+    write_model(
+        architecture_dir / "model.sysml",
+        fixture_text("generate-ssd/scalar-port.sysml"),
+    )
+
+    output_path = tmp_path / "SystemStructure.ssd"
+    generate_ssd(architecture_dir, output_path, "System")
+
+    assert _ssd_summary(output_path) == [
+        "component sink",
+        "  input:AltIn:Real",
+        "component source",
+        "  output:Alt:Real",
+        "connection source.Alt -> sink.AltIn",
     ]

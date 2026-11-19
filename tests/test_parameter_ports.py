@@ -12,6 +12,7 @@ from pyssp_sysml2.parameters.dialect.declarations import (
     parameter_interface,
 )
 from pyssp_sysml2.parameters.dialect.markers import validate_marker_definitions
+from pyssp_sysml2.parameters.synthesis.interfaces import ensure_component_interface
 from pyssp_sysml2.artifacts.ssd import generate_ssd
 from pyssp_sysml2.model import load
 from tests.fixture_files import render_fixture
@@ -79,6 +80,29 @@ def test_out_direction_is_rejected(tmp_path) -> None:
 
     with pytest.raises(ValueError, match="undirected or 'in'"):
         parameter_interface(architecture, architecture.get_part_def("Comp"))
+
+
+def test_conjugated_parameter_interface_is_rejected(tmp_path) -> None:
+    """SSD parameter synthesis refuses a conjugated parameter interface."""
+    _, architecture = _load(
+        tmp_path, _model(port="in port parameters : ~Params;")
+    )
+    part_def = architecture.get_part_def("Comp")
+
+    ssd_path = tmp_path / "SystemStructure.ssd"
+    with SSD(ssd_path, mode="w") as ssd:
+        top = ssd.new_system(COMPOSITION_NAME)
+        component = top.add_component("comp", source="resources/Comp.fmu")
+        component.add_connector(name="gain", kind="parameter", type_name="Real")
+
+    with SSD(ssd_path, mode="r") as ssd:
+        with pytest.raises(ValueError, match="conjugated definition '~Params'"):
+            ensure_component_interface(
+                architecture,
+                part_def,
+                ssd.system.elements[0],
+                source_file="architecture.sysml",
+            )
 
 
 def test_attribute_bag_is_rejected(tmp_path) -> None:
