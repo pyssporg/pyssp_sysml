@@ -653,3 +653,5 @@ Project internals, test/reference behavior, and maintainer workflow are in:
 - [`docs/breakdown/README.md`](docs/breakdown/README.md) — current state: intent,
   parameter dialect, architecture, implementation, verification, operation, and
   evolution
+- [`docs/building-on-pyssp-sysml2.md`](docs/building-on-pyssp-sysml2.md) —
+  layering contract for libraries that build FMUs before `generate ssp`

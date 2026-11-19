@@ -37,6 +37,8 @@ library boundary; the CLI is the public surface for other projects.
   `pyfmi_sysml2`.
 - Current state, intent, and modeling conventions live in `docs/breakdown/`; the
   code is the source of truth when the two disagree.
+- Consumer layering (FMU producers and orchestrators) is documented in
+  `docs/building-on-pyssp-sysml2.md`; keep it in sync with the public surface.
 - This is also a test and experiment repo: keep it easy to extend.
 
 ## Hard constraints
