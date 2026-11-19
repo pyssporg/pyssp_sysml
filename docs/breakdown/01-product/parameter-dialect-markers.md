@@ -17,8 +17,9 @@ SysML v2 has no built-in parameter-set construct. `bind` is used here as a
 mapping declaration. In SysML itself, `bind` is an equality constraint, not an
 assignment or override.
 
-The implementation recognizes only direct marker specialization. It does not
-flatten inherited set or interface members; reuse is proposed in `IMP-001`.
+The markers are recognized transitively for a parameter interface and
+direct-only for a parameter set. Inherited interface members are resolved and
+emitted; inherited set members are not flattened into the SSV (`IMP-001`).
 
 The markers are `pycps_sysml2`'s; this package consumes them (`INFO-031`) and
 emits the artifacts (`CP-001`).

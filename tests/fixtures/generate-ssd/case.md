@@ -25,6 +25,7 @@ The SysML inputs for SSD generation.
 | `mirrored-ports.sysml` | Input: opposite `in`/`out` member directions on the two ends |
 | `conjugated-ports.sysml` | Input: one `Feed` def used as `Feed` and `~Feed` |
 | `scalar-port.sysml` | Input: a port whose only member is `value` |
+| `inheritance.sysml` | Input: a derived part def and a derived port def with inherited members |
 
 No expected artifact: the SSD tests assert an SSD connector/connection summary,
 top-level metadata, or the raised error.
@@ -53,6 +54,9 @@ connections, `boundary-array.sysml` proves it through a boundary port, and
 not definition identity, so a mirrored expression definition can be connected.
 `scalar-port.sysml` proves a port with a single `value` member exports the
 connector under the port name, without a `.value` suffix.
+`inheritance.sysml` proves an artifact enumerates a definition's effective
+members: `DerivedLink` emits the inherited ports and connection before its own,
+and `ExtraSignal` emits the inherited `value` member before `flag`.
 
 Origin: inline literals (one `.format()` template) in
 `tests/test_generate_ssd.py`; `BOUNDARY_MODEL` became `boundary.sysml` and the
@@ -65,3 +69,4 @@ format call became `render_fixture`. The composition name is a slot.
 | 2026-10-28 | Moved out of `tests/test_generate_ssd.py` | Documents belong in files; rendered bytes unchanged |
 | 2026-11-19 | Added fixed-length attribute-array fixtures | Array members expand per element; unequal lengths fail |
 | 2026-11-19 | Added `mirrored-ports.sysml` | Mirrored defs are compatible connection ends |
+| 2026-11-19 | Added `inheritance.sysml` | Artifacts enumerate effective, inherited members |

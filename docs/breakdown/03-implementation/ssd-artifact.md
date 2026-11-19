@@ -20,8 +20,8 @@ pyssp generate ssd \
 
 ## Structure
 
-- A leaf part definition becomes an `ssd:Component`.
-- A part definition with subparts becomes a nested `ssd:System`.
+- A part definition with no effective subpart becomes an `ssd:Component`.
+- A part definition with effective subparts becomes a nested `ssd:System`.
 - The part usage name becomes the SSD element name.
 - The part definition name determines `resources/<Definition>.fmu` for a leaf
   that declares `fmu_meta.source`.
@@ -30,7 +30,8 @@ pyssp generate ssd \
 - Connections are written per system level.
 - A composition's default-experiment container becomes
   `<ssd:DefaultExperiment startTime="0" stopTime="3600" />`; without one the
-  same 0/3600 defaults are written.
+  same 0/3600 defaults are written. SSP 2.0 has no experiment tolerance, so an
+  authored `tolerance` is dropped.
 
 Parameter connectors are `INFO-045`; parameter bindings are `INFO-046`.
 

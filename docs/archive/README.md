@@ -19,6 +19,10 @@ Records live in the cold-storage archive; extract one with `pb archive read <ID>
   An analysis composes a model-level SysML v2 configuration; the adapter derives the selection map from its redefinitions and feature values, replacing the pyssp_selection control attribute.
 - **AD-005** — Adapt v0.6.0 to pycps_sysml2 0.3.0 Typed Containers · accepted · 2026-11-19 · `AD-005`
   v0.6.0 reads the experiment from a typed DefaultExperiment container, moves flattening to the --flat-connector export option, drops the control-tag plumbing, and leaves the release pin for a follow-up.
+- **AD-006** — SSD generation reads effective members · accepted · 2026-11-19 · `AD-006`
+  SSD and preflight resolve inherited members through pycps_sysml2, while the SSV writer and SysML synthesis stay declared-only.
+- **AD-007** — SSD drops the experiment tolerance · accepted · 2026-11-19 · `AD-007`
+  SSP 2.0's DefaultExperiment has no tolerance attribute, so the SSD writer emits only startTime and stopTime.
 
 ### Implementation
 

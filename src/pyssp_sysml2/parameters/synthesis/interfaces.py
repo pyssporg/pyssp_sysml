@@ -16,6 +16,7 @@ from pycps_sysml2.model import (
     PartDefinition,
     PortDefinition,
     PortUsage,
+    effective_members,
 )
 from pycps_sysml2.parameters.dialect.composition import (
     AttributeKind,
@@ -147,14 +148,15 @@ def ensure_component_interface(
             f"'in port {PARAMETERS_PORT_NAME} : <PortDef>;' instead."
         )
 
-    port_usage = part_def.ports.get(PARAMETERS_PORT_NAME)
+    members = effective_members(architecture, part_def)
+    port_usage = members.ports.get(PARAMETERS_PORT_NAME)
     if port_usage is not None:
         interface = architecture.resolve_port(port_usage)
         if interface is None:
             raise ValueError(
                 f"{part_def.name}.parameters is not typed by a port definition"
             )
-        if not is_parameter_interface(interface):
+        if not is_parameter_interface(architecture, interface):
             raise ValueError(
                 f"Parameter port {part_def.name}.parameters is typed by "
                 f"'{interface.name}', which is not marked ':> {PARAMETER_INTERFACE_MARKER}'"
@@ -170,13 +172,13 @@ def ensure_component_interface(
                 f"conjugated definition '~{interface.name}'; parameter members "
                 "are undirected, so conjugation has no meaning"
             )
-        require_undirected_members(interface)
+        require_undirected_members(architecture, interface)
         _reconcile_interface(interface, attributes)
         return interface
 
     flat = [
         name
-        for name, attribute in part_def.attributes.items()
+        for name, attribute in members.attributes.items()
         if classify_attribute(architecture, attribute, policy=SSP_POLICY)
         in {AttributeKind.TYPED, AttributeKind.UNTYPED}
     ]

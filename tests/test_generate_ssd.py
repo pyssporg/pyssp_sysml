@@ -6,6 +6,7 @@ import pytest
 from pyssp_standard import SSD, System
 
 from pycps_sysml2 import core_definitions
+from pyssp_sysml2.artifacts.preflight import _expected_connector_names
 from pyssp_sysml2.artifacts.ssd import build_ssd, generate_ssd
 from pyssp_sysml2.model import load
 from tests.fixture_files import fixture_path, fixture_text, render_fixture
@@ -416,6 +417,67 @@ def test_boundary_array_attribute_expands_per_element(tmp_path) -> None:
             (None, "u.p[2]", "inner", "u.p[2]"),
             (None, "u.p[3]", "inner", "u.p[3]"),
         ]
+
+
+def test_derived_part_definition_emits_effective_members(tmp_path) -> None:
+    """A derived def emits inherited connectors and connections before its own."""
+    architecture_dir = tmp_path / "arch"
+    write_model(
+        architecture_dir / "model.sysml",
+        fixture_text("generate-ssd/inheritance.sysml"),
+    )
+
+    output_path = tmp_path / "SystemStructure.ssd"
+    generate_ssd(architecture_dir, output_path, "System")
+
+    with SSD(output_path, mode="r") as ssd:
+        top = ssd.system
+        assert top is not None
+        [link] = top.elements
+        assert isinstance(link, System)
+        assert [element.name for element in link.elements] == ["sink", "probe"]
+        assert [
+            (connector.name, connector.kind, connector.type_name)
+            for connector in link.connectors
+        ] == [
+            ("u", "input", "Real"),
+            ("y", "output", "Real"),
+            ("extra.value", "output", "Real"),
+            ("extra.flag", "output", "Integer"),
+        ]
+        assert [
+            (
+                connection.start_element,
+                connection.start_connector,
+                connection.end_element,
+                connection.end_connector,
+            )
+            for connection in link.connections
+        ] == [
+            (None, "u", "sink", "u"),
+            ("probe", "u.value", None, "extra.value"),
+            ("probe", "u.flag", None, "extra.flag"),
+        ]
+
+
+def test_preflight_expects_effective_connectors(tmp_path) -> None:
+    """Preflight reads the same inherited member view as the SSD writer."""
+    architecture_dir = tmp_path / "arch"
+    write_model(
+        architecture_dir / "model.sysml",
+        fixture_text("generate-ssd/inheritance.sysml"),
+    )
+
+    architecture = load(architecture_dir)
+    derived = architecture.get_part_def("DerivedLink")
+
+    assert _expected_connector_names(
+        architecture,
+        derived,
+        parameter_model=False,
+        base_index=0,
+        flat=False,
+    ) == ["u", "y", "extra.value", "extra.flag"]
 
 
 def test_flat_connector_rejects_an_array_attribute(tmp_path) -> None:

@@ -17,6 +17,7 @@ output itself, in two independent ways:
 | Case       | Composition           | Covers                                                        |
 | ---------- | --------------------- | ------------------------------------------------------------- |
 | `identity` | `IdentityComposition` | whole-object bind (SSD `ParameterBinding` prefix), per-member SSM for a second component, two components |
+| `inheritance` | `InheritanceComposition` | effective members of a derived part def and a derived port def, ancestor-first |
 | `mapping`  | `MappingComposition`  | per-member binds, fixed-length list expansion into `[0]`/`[1]` entries |
 
 Both cases produce `SystemStructure.ssd`, one `.ssv` per parameter set, and one

@@ -1,0 +1,48 @@
+<?xml version='1.0' encoding='utf-8'?>
+<ssd:SystemStructureDescription xmlns:ssc="http://ssp-standard.org/SSP1/SystemStructureCommon" xmlns:ssd="http://ssp-standard.org/SSP1/SystemStructureDescription" name="InheritanceComposition" version="1.0">
+  <ssd:System name="InheritanceComposition">
+    <ssd:Elements>
+      <ssd:System name="link">
+        <ssd:Connectors>
+          <ssd:Connector name="u" kind="input">
+            <ssc:Real />
+          </ssd:Connector>
+          <ssd:Connector name="y" kind="output">
+            <ssc:Real />
+          </ssd:Connector>
+          <ssd:Connector name="extra.value" kind="output">
+            <ssc:Real />
+          </ssd:Connector>
+          <ssd:Connector name="extra.flag" kind="output">
+            <ssc:Integer />
+          </ssd:Connector>
+        </ssd:Connectors>
+        <ssd:Elements>
+          <ssd:Component name="sink" source="" type="application/x-fmu-sharedlibrary">
+            <ssd:Connectors>
+              <ssd:Connector name="u" kind="input">
+                <ssc:Real />
+              </ssd:Connector>
+            </ssd:Connectors>
+          </ssd:Component>
+          <ssd:Component name="probe" source="" type="application/x-fmu-sharedlibrary">
+            <ssd:Connectors>
+              <ssd:Connector name="u.value" kind="input">
+                <ssc:Real />
+              </ssd:Connector>
+              <ssd:Connector name="u.flag" kind="input">
+                <ssc:Integer />
+              </ssd:Connector>
+            </ssd:Connectors>
+          </ssd:Component>
+        </ssd:Elements>
+        <ssd:Connections>
+          <ssd:Connection startConnector="u" endElement="sink" endConnector="u" />
+          <ssd:Connection startElement="probe" startConnector="u.value" endConnector="extra.value" />
+          <ssd:Connection startElement="probe" startConnector="u.flag" endConnector="extra.flag" />
+        </ssd:Connections>
+      </ssd:System>
+    </ssd:Elements>
+  </ssd:System>
+  <ssd:DefaultExperiment startTime="0" stopTime="3600" />
+</ssd:SystemStructureDescription>

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
+from dataclasses import replace
 from pathlib import Path
 
 from pyssp_standard import (
@@ -33,6 +34,7 @@ from pycps_sysml2.model import (
     PartDefinition,
     PortDefinition,
     PortUsage,
+    effective_members,
     load,
 )
 from pycps_sysml2.parameters.constraints import enforce_constraints
@@ -59,6 +61,27 @@ from pyssp_sysml2.artifacts.ssv import parameter_set_resource
 from pyssp_sysml2.core.paths import ensure_parent_dir
 
 
+def _effective_part(
+    architecture: Architecture, part_def: PartDefinition
+) -> PartDefinition:
+    """A detached view carrying every effective member of *part_def*.
+
+    The parameter dialect resolves the ``parameters`` port and its declarations
+    from a definition's own fields. Handing it this view keeps inherited
+    members visible without mutating the IR.
+    """
+    members = effective_members(architecture, part_def)
+    return replace(
+        part_def,
+        attributes=dict(members.attributes),
+        ports=dict(members.ports),
+        parts=dict(members.parts),
+        connections=dict(members.connections),
+        bindings=list(members.bindings),
+        constraints=list(members.constraints),
+    )
+
+
 def _endpoint_port_def(
     system: PartDefinition,
     architecture: Architecture,
@@ -71,7 +94,7 @@ def _endpoint_port_def(
     system boundary; the SSD connection omits the element for that end.
     """
     if part_name is None:
-        port_usage = system.ports.get(port_name)
+        port_usage = effective_members(architecture, system).ports.get(port_name)
         if port_usage is None:
             raise ValueError(
                 f"Unknown boundary port '{port_name}' in connection; declare "
@@ -80,26 +103,26 @@ def _endpoint_port_def(
         port_def = architecture.resolve_port(port_usage)
         if port_def is None:
             raise ValueError("Port definition not connected")
-        if is_parameter_interface(port_def):
+        if is_parameter_interface(architecture, port_def):
             raise ValueError(
                 f"Parameter port '{port_name}' cannot be connected; "
                 "apply a parameter set with 'bind'"
             )
         return port_def, port_usage
 
-    part_usage = system.parts.get(part_name)
+    part_usage = effective_members(architecture, system).parts.get(part_name)
     if part_usage is None:
         raise ValueError(f"Unknown part '{part_name}' in connection")
     part_def = architecture.resolve_part(part_usage)
     if part_def is None:
         raise ValueError(f"Unresolved part definition for {part_name}")
-    port_usage = part_def.ports.get(port_name)
+    port_usage = effective_members(architecture, part_def).ports.get(port_name)
     if port_usage is None:
         raise ValueError(f"Unknown port '{part_name}.{port_name}' in connection")
     port_def = architecture.resolve_port(port_usage)
     if port_def is None:
         raise ValueError("Port definition not connected")
-    if is_parameter_interface(port_def):
+    if is_parameter_interface(architecture, port_def):
         raise ValueError(
             f"Parameter port '{part_name}.{port_name}' cannot be connected; "
             "apply a parameter set with 'bind'"
@@ -107,17 +130,21 @@ def _endpoint_port_def(
     return port_def, port_usage
 
 
-def _is_scalar_port(port_def: PortDefinition) -> bool:
+def _is_scalar_port(
+    architecture: Architecture, port_def: PortDefinition
+) -> bool:
     """True for a port that names one FMU variable rather than a group.
 
     The loader normalizes a connector without a dot to a port with one member
     named ``value``; the same shape exports that member as the connector name,
     so a scalar signal keeps its FMU variable name.
     """
-    return tuple(port_def.attributes) == ("value",)
+    return tuple(effective_members(architecture, port_def).attributes) == ("value",)
 
 
-def _ports_compatible(source: PortDefinition, destination: PortDefinition) -> bool:
+def _ports_compatible(
+    architecture: Architecture, source: PortDefinition, destination: PortDefinition
+) -> bool:
     """True when two port definitions describe the same interface.
 
     Direction is flow metadata, not type: a mirrored definition with the same
@@ -126,12 +153,14 @@ def _ports_compatible(source: PortDefinition, destination: PortDefinition) -> bo
     """
     if source is destination:
         return True
-    if source.attributes.keys() != destination.attributes.keys():
+    source_members = effective_members(architecture, source).attributes
+    destination_members = effective_members(architecture, destination).attributes
+    if source_members.keys() != destination_members.keys():
         return False
     return all(
-        source.attributes[name].effective_type_name
-        == destination.attributes[name].effective_type_name
-        for name in source.attributes
+        source_members[name].effective_type_name
+        == destination_members[name].effective_type_name
+        for name in source_members
     )
 
 
@@ -218,13 +247,14 @@ def _check_boundary_direction(
     """
     if part_name is not None:
         return
-    port_usage = system.ports[port_name]
+    port_usage = effective_members(architecture, system).ports[port_name]
     port_def = architecture.resolve_port(port_usage)
     if port_def is None:
         raise ValueError("Port definition not connected")
     side = "start" if expected_direction == "in" else "end"
-    if port_def.attributes:
-        for attribute in port_def.attributes.values():
+    members = effective_members(architecture, port_def).attributes
+    if members:
+        for attribute in members.values():
             direction = _member_direction(attribute, port_usage)
             if direction != expected_direction:
                 raise ValueError(
@@ -267,19 +297,21 @@ def _add_part_connectors(
     base_index: int = 0,
 ) -> None:
     """Append port and parameter connectors for one component or system."""
-    for port_usage in part_def.ports.values():
+    members = effective_members(architecture, part_def)
+    for port_usage in members.ports.values():
         port_def = architecture.resolve_port(port_usage)
         if port_def is None:
             raise ValueError(
                 f"Unresolved port definition for "
                 f"{part_def.name}.{port_usage.name}"
             )
-        if is_parameter_interface(port_def):
+        if is_parameter_interface(architecture, port_def):
             # Emitted by the parameter branch below, flattened to member names.
             continue
-        scalar = _is_scalar_port(port_def)
+        scalar = _is_scalar_port(architecture, port_def)
+        port_attributes = effective_members(architecture, port_def).attributes
         for index in _port_indices(port_usage):
-            for attribute in port_def.attributes.values():
+            for attribute in port_attributes.values():
                 for attribute_index in _attribute_indices(attribute, port_usage):
                     connector_name = _connector_name(
                         port_usage,
@@ -297,9 +329,10 @@ def _add_part_connectors(
                         type_name=attribute.effective_type_name,
                     )
 
-    has_interface = parameter_interface(architecture, part_def) is not None
+    parameter_part = _effective_part(architecture, part_def)
+    has_interface = parameter_interface(architecture, parameter_part) is not None
     if parameter_model and has_interface:
-        for attribute in parameter_declarations(architecture, part_def):
+        for attribute in parameter_declarations(architecture, parameter_part):
             for item in parameter_items(attribute, base_index=base_index):
                 element.add_connector(
                     name=item.name,
@@ -317,7 +350,7 @@ def _add_connections(
     flat: bool,
 ) -> None:
     """Append this system level's connections to an SSD system."""
-    for conn in part_def.connections.values():
+    for conn in effective_members(architecture, part_def).connections.values():
         if conn.source_part is None and conn.destination_part is None:
             raise ValueError(
                 f"Connection '{conn.key}' links two boundary ports of "
@@ -335,7 +368,9 @@ def _add_connections(
         _check_boundary_direction(
             architecture, part_def, conn.destination_part, conn.destination_port, "out"
         )
-        if type_check and not _ports_compatible(src_port_def, dst_port_def):
+        if type_check and not _ports_compatible(
+            architecture, src_port_def, dst_port_def
+        ):
             raise ValueError(
                 f"Src {conn.source_port} and dest port "
                 f"{conn.destination_port} must be same type"
@@ -350,9 +385,11 @@ def _add_connections(
                 f"{_multiplicity_text(src_port_usage)} and "
                 f"{dst_port_usage.name}{_multiplicity_text(dst_port_usage)}"
             )
+        src_attributes = effective_members(architecture, src_port_def).attributes
+        dst_attributes = effective_members(architecture, dst_port_def).attributes
         for index in src_indices:
-            for src_attribute in src_port_def.attributes.values():
-                dst_attribute = dst_port_def.attributes.get(src_attribute.name)
+            for src_attribute in src_attributes.values():
+                dst_attribute = dst_attributes.get(src_attribute.name)
                 if dst_attribute is None:
                     # Different port types: keep naming by the source member.
                     dst_attribute = src_attribute
@@ -384,7 +421,7 @@ def _add_connections(
                             flat,
                             index,
                             attribute_index,
-                            scalar=_is_scalar_port(src_port_def),
+                            scalar=_is_scalar_port(architecture, src_port_def),
                         ),
                         end_element=conn.destination_part,
                         end_connector=_connector_name(
@@ -393,7 +430,7 @@ def _add_connections(
                             flat,
                             index,
                             attribute_index,
-                            scalar=_is_scalar_port(dst_port_def),
+                            scalar=_is_scalar_port(architecture, dst_port_def),
                         ),
                     )
 
@@ -409,14 +446,15 @@ def _write_elements(
     base_index: int = 0,
 ) -> None:
     """Recursively write nested systems and leaf FMU components."""
-    for part_name, part_usage in part_def.parts.items():
+    members = effective_members(architecture, part_def)
+    for part_name, part_usage in members.parts.items():
         child = architecture.resolve_part(part_usage)
         if child is None:
             raise ValueError(
                 f"Unresolved part definition for {part_usage.name}"
             )
         metadata = fmu_metadata(architecture, child)
-        if child.parts:
+        if effective_members(architecture, child).parts:
             if metadata is not None:
                 raise ValueError(
                     f"{child.name} has both subparts and 'fmu_meta' metadata; "

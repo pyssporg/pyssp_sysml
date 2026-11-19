@@ -12,8 +12,8 @@ status: current
 - A metadata usage must be typed by a def marked `:> FmuMetadata`.
 - The marker definition `FmuMetadata` must exist.
 - At most one metadata attribute per part.
-- Metadata is allowed only on leaf parts. A part with subparts and `fmu_meta`
-  reports `has both subparts and 'fmu_meta' metadata`.
+- Metadata is allowed only on leaf parts. A part with effective subparts and
+  `fmu_meta` reports `has both subparts and 'fmu_meta' metadata`.
 - Only known members are allowed: `source` and `implementation`.
 - Member values must be strings.
 - `pyssp_implementation` is retired; move it into `fmu_meta`.

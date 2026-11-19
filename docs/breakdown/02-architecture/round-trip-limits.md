@@ -19,7 +19,9 @@ status: current
   SysML.
 - A childless SSD `System` can regenerate as a leaf component; no structural
   marker distinguishes the two (`INFO-002`).
-- Set inheritance and union are not implemented; see `IMP-001`.
+- Set inheritance and union resolve in the model and in SSD generation, but the
+  SSV writer and SysML synthesis stay declared-only, so inherited set members
+  are neither flattened nor preserved (`IMP-001`).
 - Flat parameter attributes and the `pyssp_*` vocabulary are retired; a
   remaining name is a migration error (`INFO-024`, `INFO-004`).
 - Flattened connector naming is not model data, so `generate sysml` does not

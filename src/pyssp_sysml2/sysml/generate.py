@@ -227,14 +227,14 @@ def _port_def_for(
     if port_def is not None:
         return port_def, False
     for existing in architecture.port_definitions.values():
-        if is_parameter_interface(existing):
+        if is_parameter_interface(architecture, existing):
             continue
         if _port_def_signature(existing) == signature:
             cache[signature] = existing
             return existing, False
     flipped = _flipped_signature(signature)
     for existing in architecture.port_definitions.values():
-        if is_parameter_interface(existing):
+        if is_parameter_interface(architecture, existing):
             continue
         if _port_def_signature(existing) == flipped:
             return existing, True

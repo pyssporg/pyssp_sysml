@@ -13,10 +13,12 @@ status: current
 
 The SSD distinction is structural:
 
-- A `part def` with no subparts becomes an `ssd:Component` with an FMU source.
-- A `part def` with subparts becomes an `ssd:System`.
+- A `part def` with no effective subpart becomes an `ssd:Component` with an FMU source.
+- A `part def` with effective subparts becomes an `ssd:System`.
 - The part usage name becomes the SSD element name.
 - The part definition name determines the FMU source stem for a leaf.
+- Membership is the effective view (`pycps_sysml2.model.effective`): an
+  inherited subpart or port counts exactly like a declared one.
 
 The definition name determines `resources/<Definition>.fmu` when the leaf
 declares `fmu_meta.source`. Dots in a definition name become underscores in the
@@ -25,10 +27,10 @@ FMU filename.
 A nested system cannot also be an FMU. FMU metadata is meaningful only on a
 leaf; a part with both subparts and `fmu_meta` is rejected (`INFO-037`).
 
-A `part def` with no subparts is a leaf component even if the SSD originally had
-a `System` element with no children. No structural marker distinguishes an
-empty system from an FMU leaf; this is a documented round-trip limitation
-(`INFO-041`).
+A `part def` with no effective subparts is a leaf component even if the SSD
+originally had a `System` element with no children. No structural marker
+distinguishes an empty system from an FMU leaf; this is a documented round-trip
+limitation (`INFO-041`).
 
 The top composition is a structural container, not a parameter target
 (`CP-015`). It may carry a default-experiment container and may have

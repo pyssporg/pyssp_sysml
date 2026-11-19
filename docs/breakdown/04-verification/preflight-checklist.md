@@ -39,6 +39,6 @@ review; the command is the runnable subset:
 - Sync SSD connectors use `port.attribute` form.
 - All files use the same package name and tuple list values.
 - Each parameterized part has at most one `parameters` port.
-- A part with subparts is intended as a system, not an FMU.
+- A part with effective subparts is intended as a system, not an FMU.
 - Connected ports use compatible port definitions.
 - If round-tripping, the expected synthesized name changes are known.
