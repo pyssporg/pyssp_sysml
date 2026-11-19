@@ -5,6 +5,8 @@ from pathlib import Path
 import pytest
 from pyssp_standard import SSD
 
+from pycps_sysml2.parameters.dialect.composition import validate_parameter_dialect
+from pycps_sysml2.parameters.policy import SSP_POLICY
 from pyssp_sysml2.parameters.dialect.declarations import (
     parameter_declarations,
     parameter_interface,
@@ -105,8 +107,8 @@ def test_attribute_marker_is_rejected(tmp_path) -> None:
         validate_marker_definitions(architecture)
 
 
-def test_flat_connector_marker_is_rejected(tmp_path) -> None:
-    """A parameter interface cannot flatten to the port name."""
+def test_retired_flat_connector_attribute_is_rejected(tmp_path) -> None:
+    """Flattening is an export option; the model attribute was removed."""
     _, architecture = _load(
         tmp_path,
         _model(
@@ -117,8 +119,12 @@ def test_flat_connector_marker_is_rejected(tmp_path) -> None:
         ),
     )
 
-    with pytest.raises(ValueError, match="cannot declare"):
-        parameter_interface(architecture, architecture.get_part_def("Comp"))
+    with pytest.raises(ValueError, match="--flat-connector"):
+        validate_parameter_dialect(
+            architecture,
+            architecture.get_part_def("Comp"),
+            policy=SSP_POLICY,
+        )
 
 
 def test_parameter_port_cannot_be_connected(tmp_path) -> None:

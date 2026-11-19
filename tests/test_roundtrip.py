@@ -59,7 +59,7 @@ def test_ssd_sysml_ssd_preserves_metadata(tmp_path: Path) -> None:
     assert "attribute fmu_meta : GainFmuMetadata;" in generated_text
 
     regenerated = tmp_path / "regenerated.ssd"
-    generate_ssd(architecture_dir, regenerated, "RoundTrip")
+    generate_ssd(architecture_dir, regenerated, "RoundTrip", flat_connector=True)
 
     with SSD(regenerated, mode="r") as ssd:
         assert ssd.default_experiment.start_time == 0.0

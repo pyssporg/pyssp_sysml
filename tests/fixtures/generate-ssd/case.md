@@ -11,6 +11,9 @@ The SysML inputs for SSD generation.
 | `composition.sysml` | Input, template with `$COMPOSITION_NAME` |
 | `core-metadata.sysml` | Input, template with `$COMPOSITION_NAME` |
 | `retired-parameter-set.sysml` | Input, template with `$COMPOSITION_NAME` |
+| `default-experiment.sysml` | Input, template with `$COMPOSITION_NAME` |
+| `retired-default-experiment.sysml` | Input |
+| `retired-flat-connector.sysml` | Input |
 | `boundary.sysml` | Input, template with `$COMPOSITION_NAME` |
 | `boundary-wrong-direction.sysml` | Input, template with `$COMPOSITION_NAME` |
 | `boundary-to-boundary.sysml` | Input, template with `$COMPOSITION_NAME` |
@@ -25,6 +28,10 @@ one architecture, proving cross-file resolution, array parameters, and
 connection expansion into per-scalar SSD connections. `core-metadata.sysml` pins
 the SSD version, name, default experiment, and empty component source.
 `retired-parameter-set.sysml` pins the rejection of `pyssp_parameter_set`.
+`default-experiment.sysml` proves a typed `DefaultExperiment` container
+supplies the SSD start and stop time. The two `retired-*` documents pin the
+migration errors for the removed default-experiment attributes and
+`pyssp_flat_connector`.
 `boundary.sysml` proves a subpart-to-boundary wiring becomes an SSD connection
 with a missing element end, including the inner system. The two boundary error
 documents prove a boundary port used as a connection start and a

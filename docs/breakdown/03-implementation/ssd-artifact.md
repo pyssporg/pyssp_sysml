@@ -28,8 +28,9 @@ pyssp generate ssd \
 - A leaf without `fmu_meta.source` gets an empty `Component/@source`.
 - `fmu_meta.implementation` sets `Component/@implementation`.
 - Connections are written per system level.
-- Composition control attributes become
-  `<ssd:DefaultExperiment startTime="0" stopTime="3600" />`.
+- A composition's default-experiment container becomes
+  `<ssd:DefaultExperiment startTime="0" stopTime="3600" />`; without one the
+  same 0/3600 defaults are written.
 
 Parameter connectors are `INFO-045`; parameter bindings are `INFO-046`.
 

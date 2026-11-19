@@ -364,6 +364,7 @@ def test_example_08_path_variants_differ_in_nested_structure(
             tmp_path / "out" / "direct.ssd",
             "System",
             selections={"path": "directPath"},
+            flat_connector=True,
         )
     )
     filtered = _generated_ssd_tree(
@@ -372,6 +373,7 @@ def test_example_08_path_variants_differ_in_nested_structure(
             tmp_path / "out" / "filtered.ssd",
             "System",
             selections={"path": "filteredPath"},
+            flat_connector=True,
         )
     )
 
@@ -408,6 +410,7 @@ def test_example_08_filtered_build_is_byte_identical(tmp_path: Path) -> None:
             tmp_path / f"filtered-{index}.ssd",
             "System",
             selections={"path": "filteredPath"},
+            flat_connector=True,
         ).read_bytes()
         for index in range(2)
     ]
@@ -574,6 +577,7 @@ def test_example_10_dotted_selection_resolves_both_points(
             tmp_path / "nested.ssd",
             "System",
             selections={"path": "nestedPath", "path.stage": "attenuateStage"},
+            flat_connector=True,
         )
     )
     assert tree["elements"][1] == {
@@ -1248,7 +1252,7 @@ def test_resolve_rejects_a_body_attribute_the_owner_already_declares(
         ValueError,
         match=re.escape(
             "Variant 'withValues' of variation point 'AttributeChoice' "
-            "declares attribute 'pyssp_default_start_time', which definition "
+            "declares attribute 'shadowedValue', which definition "
             "'AttributeSystem' already declares; rename it."
         ),
     ):

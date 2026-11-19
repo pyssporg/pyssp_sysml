@@ -202,6 +202,15 @@ def main(argv: Optional[list[str]] = None) -> int:
         ),
     )
     _add_base_index_arg(ssd_parser)
+    ssd_parser.add_argument(
+        "--flat-connector",
+        action="store_true",
+        default=False,
+        help=(
+            "Name each connector for the port alone instead of "
+            "'port.member'. Flattening is an export option, not model data."
+        ),
+    )
 
     ssp_parser = generate_subparsers.add_parser(
         "ssp", help="Package an SSP archive from SysML and built FMUs"
@@ -452,6 +461,7 @@ def main(argv: Optional[list[str]] = None) -> int:
                 selections=selections,
                 includes=includes,
                 base_index=args.base_index,
+                flat_connector=args.flat_connector,
             )
             print(f"SSD written to {output}")
             return 0

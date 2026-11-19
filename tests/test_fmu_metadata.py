@@ -323,7 +323,7 @@ def test_retired_implementation_attribute_is_rejected(tmp_path) -> None:
     )
 
     with pytest.raises(
-        ValueError, match="pyssp_implementation is no longer supported"
+        ValueError, match=r"pyssp_implementation .* is no longer supported"
     ):
         generate_ssd(
             architecture_dir, tmp_path / "SystemStructure.ssd", COMPOSITION_NAME

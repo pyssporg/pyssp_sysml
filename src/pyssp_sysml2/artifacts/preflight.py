@@ -17,7 +17,6 @@ from pathlib import Path
 
 from pyssp_standard import FMU
 
-from pycps_sysml2.core.control import is_control_attribute
 from pycps_sysml2.core.fmi_helpers import fmu_filename
 from pycps_sysml2.metadata.fmu_metadata import fmu_metadata
 from pycps_sysml2.metadata.roles import is_analysis
@@ -37,7 +36,6 @@ from pycps_sysml2.parameters.policy import SSP_POLICY
 from pyssp_sysml2.artifacts.ssd import (
     _connector_name,
     _port_indices,
-    flat_connector,
 )
 
 
@@ -110,6 +108,7 @@ def _expected_connector_names(
     *,
     parameter_model: bool,
     base_index: int,
+    flat: bool,
 ) -> list[str]:
     """The connector names the SSD will declare for one leaf component."""
     expected: list[str] = []
@@ -117,11 +116,8 @@ def _expected_connector_names(
         port_def = architecture.resolve_port(port_usage)
         if port_def is None or is_parameter_interface(port_def):
             continue
-        flat = flat_connector(port_def)
         for index in _port_indices(port_usage):
             for attribute in port_def.attributes.values():
-                if is_control_attribute(attribute.name):
-                    continue
                 expected.append(
                     _connector_name(port_usage, attribute.name, flat, index)
                 )
@@ -139,6 +135,7 @@ def check_fmu_interfaces(
     fmu_root: Path | None = None,
     *,
     base_index: int = 0,
+    flat_connector: bool = False,
 ) -> tuple[str, ...]:
     """Report every FMU interface problem below ``composition``.
 
@@ -151,6 +148,9 @@ def check_fmu_interfaces(
     same value the generator will use (``--base-index``): parameter lists are
     0-based by default, while OMC-built Modelica FMUs declare them 1-based.
     Data ports keep their FMI-style 1-based indices regardless.
+
+    ``flat_connector`` must match the SSD generator's option: ``True`` expects
+    one scalar connector per port member instead of ``port.member`` names.
 
     Raises:
         ValueError: ``composition`` does not exist or is an Analysis.
@@ -207,6 +207,7 @@ def check_fmu_interfaces(
             part_def,
             parameter_model=parameter_model,
             base_index=base_index,
+            flat=flat_connector,
         )
         for name in sorted(set(expected) - names):
             problems.append(

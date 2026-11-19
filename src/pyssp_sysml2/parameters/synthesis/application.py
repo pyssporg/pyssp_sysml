@@ -9,7 +9,6 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Iterable
 
-from pycps_sysml2.core.control import is_control_attribute
 from pycps_sysml2.model import PortDefinition
 from pycps_sysml2.parameters.dialect.declarations import fixed_count
 
@@ -69,7 +68,6 @@ def _mapping_pairs(
         if (
             "." in source_base
             or source_base in RESERVED_IDENTIFIERS
-            or is_control_attribute(source_base)
         ):
             raise ValueError(
                 f"Parameter mapping source '{source}' cannot be represented as a "
@@ -145,7 +143,6 @@ def _normalize_values(
             not base
             or "." in base
             or base in RESERVED_IDENTIFIERS
-            or is_control_attribute(base)
         ):
             raise ValueError(
                 f"Parameter '{base}' cannot be represented as a SysML attribute name"

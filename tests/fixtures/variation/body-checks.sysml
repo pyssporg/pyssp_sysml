@@ -2,7 +2,6 @@ package BodyChecks {
   part def SspModel;
 
   port def RealSignal {
-    attribute pyssp_flat_connector : Boolean = true;
     attribute value : Real;
   }
 
@@ -44,12 +43,12 @@ package BodyChecks {
   variation part def AttributeChoice {
     variant part withValues {
       part gain : Gain;
-      attribute pyssp_default_start_time : Real;
+      attribute shadowedValue : Real;
     }
   }
 
   part def AttributeSystem :> SspModel {
-    attribute pyssp_default_start_time : Real = 0.0;
+    attribute shadowedValue : Real = 0.0;
     part path : AttributeChoice;
   }
 }

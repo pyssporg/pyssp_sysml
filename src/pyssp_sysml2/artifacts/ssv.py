@@ -7,7 +7,6 @@ from typing import Iterable
 
 from pyssp_standard import SSV
 
-from pycps_sysml2.core.control import is_control_attribute
 from pycps_sysml2.core.fmi_helpers import format_value
 from pycps_sysml2.model import Attribute, AttributeDefinition, load
 from pycps_sysml2.parameters.dialect.composition import validate_parameter_dialect
@@ -64,7 +63,7 @@ def write_parameter_set(
     pairs = [
         (name, attribute)
         for name, attribute in definition.attributes.items()
-        if not is_control_attribute(name) and attribute.value is not None
+        if attribute.value is not None
     ]
     if not pairs:
         raise ValueError(f"Parameter set '{definition.name}' has no values")

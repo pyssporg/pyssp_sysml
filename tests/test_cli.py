@@ -261,6 +261,36 @@ def test_pyssp_generate_ssd_cli_forwards_core_definitions(
     assert seen["includes"] == [core_definitions()]
 
 
+def test_pyssp_generate_ssd_cli_forwards_flat_connector(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """CLI --flat-connector is accepted and forwarded to the generator."""
+    seen: dict[str, object] = {}
+
+    def fake_generate_ssd(*args, **kwargs):
+        seen.update(kwargs)
+        return args[1]
+
+    monkeypatch.setattr(cli, "generate_ssd", fake_generate_ssd)
+
+    code = main(
+        [
+            "generate",
+            "ssd",
+            "--architecture",
+            str(tmp_path / "arch"),
+            "--composition",
+            COMPOSITION_NAME,
+            "--output",
+            str(tmp_path / "SystemStructure.ssd"),
+            "--flat-connector",
+        ]
+    )
+
+    assert code == 0
+    assert seen["flat_connector"] is True
+
+
 def test_pyssp_generate_ssd_cli_accepts_two_architecture_flags(
     tmp_path: Path,
 ) -> None:

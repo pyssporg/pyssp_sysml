@@ -15,7 +15,6 @@ package ParameterBindingVariation {
   }
 
   port def RealSignal {
-    attribute pyssp_flat_connector : Boolean = true;
     attribute value : Real;
   }
 
@@ -85,9 +84,13 @@ package ParameterBindingVariation {
   }
 
   /* Fixed topology. No variation point appears anywhere inside it. */
+  attribute def SystemDefaults :> DefaultExperiment {
+    attribute startTime = 0.0;
+    attribute stopTime = 1.0;
+  }
+
   part def System :> SspModel {
-    attribute pyssp_default_start_time : Real = 0.0;
-    attribute pyssp_default_stop_time : Real = 1.0;
+    attribute defaults : SystemDefaults;
     part step : Step;
     part gain : Gain;
     connect step.y to gain.u;

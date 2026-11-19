@@ -1,7 +1,6 @@
 package DefinitionVariation {
   part def SspModel;
   port def RealSignal {
-    attribute pyssp_flat_connector : Boolean = true;
     attribute value : Real;
   }
 

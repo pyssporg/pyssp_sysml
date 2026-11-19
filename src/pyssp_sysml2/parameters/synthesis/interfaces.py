@@ -9,8 +9,6 @@ from __future__ import annotations
 
 from pyssp_standard import Component, System
 
-from pycps_sysml2.core.control import is_control_attribute
-from pycps_sysml2.metadata.fmu_metadata import is_fmu_metadata_definition
 from pycps_sysml2.model import (
     Architecture,
     Attribute,
@@ -19,12 +17,17 @@ from pycps_sysml2.model import (
     PortDefinition,
     PortUsage,
 )
+from pycps_sysml2.parameters.dialect.composition import (
+    AttributeKind,
+    classify_attribute,
+)
 from pycps_sysml2.parameters.dialect.markers import (
     PARAMETER_INTERFACE_MARKER,
     PARAMETER_SET_MARKER,
     PARAMETERS_PORT_NAME,
     is_parameter_interface,
 )
+from pycps_sysml2.parameters.policy import SSP_POLICY
 
 from .inputs import (
     RESERVED_IDENTIFIERS,
@@ -49,7 +52,6 @@ def component_parameter_attributes(
         if (
             not base
             or "." in base
-            or is_control_attribute(base)
             or base in RESERVED_IDENTIFIERS
         ):
             raise ValueError(
@@ -165,10 +167,8 @@ def ensure_component_interface(
     flat = [
         name
         for name, attribute in part_def.attributes.items()
-        if not is_control_attribute(name)
-        and not is_fmu_metadata_definition(
-            architecture, architecture.resolve_attribute_def(attribute)
-        )
+        if classify_attribute(architecture, attribute, policy=SSP_POLICY)
+        in {AttributeKind.TYPED, AttributeKind.UNTYPED}
     ]
     if flat:
         raise ValueError(

@@ -1,4 +1,4 @@
-<!-- GENERATED FILE — do not edit. Regenerate with pb-registers. -->
+<!-- GENERATED FILE — do not edit. Regenerate with `pb registers`. -->
 
 # Decision Stream
 
@@ -17,6 +17,8 @@ Records live in the cold-storage archive; extract one with `pb archive read <ID>
   A pyssp_selection control attribute on an Analysis is the single authored selection; the adapter resolves it and classifies each analysis as legal, violated, or invalid.
 - **AD-003** — Configurations derive the analysis selection · accepted · 2026-10-30 · `AD-003`
   An analysis composes a model-level SysML v2 configuration; the adapter derives the selection map from its redefinitions and feature values, replacing the pyssp_selection control attribute.
+- **AD-005** — Adapt v0.6.0 to pycps_sysml2 0.3.0 Typed Containers · accepted · 2026-11-19 · `AD-005`
+  v0.6.0 reads the experiment from a typed DefaultExperiment container, moves flattening to the --flat-connector export option, drops the control-tag plumbing, and leaves the release pin for a follow-up.
 
 ### Implementation
 

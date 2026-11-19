@@ -14,10 +14,6 @@ from typing import Iterable
 
 from pyssp_standard import Component, SSM, SSV, System
 
-from pycps_sysml2.core.control import (
-    CONTROL_PREFIX,
-    is_control_attribute,
-)
 from pycps_sysml2.model import AttributeDefinition
 from pycps_sysml2.model.names import RESERVED_IDENTIFIERS
 from pycps_sysml2.parameters.dialect.declarations import (
@@ -104,10 +100,6 @@ def _group_values(
         base, index = split_indexed(name)
         if not base:
             raise ValueError(f"Parameter '{name}' has an empty base name")
-        if is_control_attribute(base):
-            raise ValueError(
-                f"Parameter '{name}' uses the reserved '{CONTROL_PREFIX}' prefix"
-            )
         if base in RESERVED_IDENTIFIERS:
             raise ValueError(
                 f"Parameter '{name}' uses reserved SysML keyword '{base}'"

@@ -26,7 +26,7 @@ Run:
   `test_roundtrip.py` cover synthesis, packaging, nested part paths, nested SSD
   systems, and round-trips.
 - `test_validate_cli.py` drives `pyssp validate` end to end: all-pass output,
-  a port member absent from the FMU, `pyssp_flat_connector = false`, an
+  a port member absent from the FMU, an
   `--implementation` mismatch, `--no-fmu`, a 1-based array parameter under
   `--base-index`, and the exit codes.
 - A SysML document of 15 or more lines lives in `tests/fixtures/<subject>/`

@@ -15,7 +15,6 @@ package ConnectionVariation {
   }
 
   port def RealSignal {
-    attribute pyssp_flat_connector : Boolean = true;
     attribute value : Real;
   }
 
@@ -97,10 +96,14 @@ package ConnectionVariation {
     }
   }
 
+  attribute def SystemDefaults :> DefaultExperiment {
+    attribute startTime = 0.0;
+    attribute stopTime = 1.0;
+  }
+
   part def System :> SspModel {
     out port y : RealSignal;
-    attribute pyssp_default_start_time : Real = 0.0;
-    attribute pyssp_default_stop_time : Real = 1.0;
+    attribute defaults : SystemDefaults;
     part source : Step;
     part path : PathChoice;
 

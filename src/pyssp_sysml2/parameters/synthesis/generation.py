@@ -21,7 +21,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from pycps_sysml2.core.control import is_control_attribute
 from pycps_sysml2.model import (
     Architecture,
     Attribute,
@@ -117,8 +116,6 @@ def _remove_parameter_usage(
         and PARAMETERS_PORT_NAME not in binding.target
     ]
     for name, attribute in list(system.attributes.items()):
-        if is_control_attribute(name):
-            continue
         if is_parameter_set(architecture.resolve_attribute_def(attribute)):
             del system.attributes[name]
 

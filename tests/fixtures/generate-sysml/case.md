@@ -8,13 +8,16 @@ what the exporter produced and a reviewer accepted, not prose written by hand.
   a SysML v2 architecture
 - **Requirement / fault:** `generate_sysml_from_ssd` must recover every SSD fact
   with a documented SysML representation — system and composition names, ports,
-  connectors, boundary connections, nested systems, and the parameter dialect
-  (interface, set, bind) — without inventing detail the SSD does not carry.
+  connectors, boundary connections, nested systems, the default-experiment
+  container, and the parameter dialect (interface, set, bind) — without
+  inventing detail the SSD does not carry. Flattened naming is not model data,
+  so it is not recorded; export with `--flat-connector` to recover it.
 - **Level:** component
 - **Input:** the `*.ssv` files in this directory. The SSDs are not committed;
   each test builds its own through the `pyssp_standard` facade because the SSD
   setup is what makes the cases differ.
-- **Expected:** the committed `*.sysml` files listed under *Artifacts*; each is
+- **Expected:** the committed `*.sysml` files listed under *Artifacts*, plus a
+  `DefaultExperiment` container when the SSD carries an experiment; each is
   compared as a whole document.
 - **Independent oracle:** the `pyssp_standard` facade re-parses the SSV inputs
   the test feeds in, and `pyssp_sysml2.model.load` re-parses each generated

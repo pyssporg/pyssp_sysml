@@ -31,6 +31,6 @@ empty system from an FMU leaf; this is a documented round-trip limitation
 (`INFO-041`).
 
 The top composition is a structural container, not a parameter target
-(`CP-015`). It may carry default-experiment control attributes and may have
+(`CP-015`). It may carry a default-experiment container and may have
 ports for structural wiring; a top-level `parameters` port is rejected
 (`INFO-004`).

@@ -12,7 +12,6 @@ package Example {
 
           port def Signal {
             attribute y : Real;
-            $flat_connector
           }
 
           part def Comp {

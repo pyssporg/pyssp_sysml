@@ -13,12 +13,6 @@ from pyssp_standard import (
     System,
 )
 
-from pycps_sysml2.core.control import (
-    DEFAULT_START_ATTR,
-    DEFAULT_STOP_ATTR,
-    FLAT_CONNECTOR_ATTR,
-    is_control_attribute,
-)
 from pycps_sysml2.core.fmi_helpers import to_fmi_direction_definition
 from pycps_sysml2.metadata.fmu_metadata import (
     component_implementation,
@@ -28,6 +22,7 @@ from pycps_sysml2.metadata.fmu_metadata import (
 from pycps_sysml2.metadata.roles import (
     SSP_ROLES,
     is_analysis,
+    read_experiment,
     require_resolved_variation,
     validate_role_markers,
 )
@@ -35,7 +30,6 @@ from pycps_sysml2.metadata.ssp_metadata import ssp_metadata
 from pycps_sysml2.model import (
     Architecture,
     PartDefinition,
-    PortDefinition,
     PortUsage,
     load,
 )
@@ -119,17 +113,6 @@ def _port_indices(port_usage: PortUsage) -> tuple[int | None, ...]:
     return tuple(range(1, count + 1))
 
 
-def flat_connector(port_def: PortDefinition) -> bool:
-    """True when ``port_def`` asks for flattened connectors.
-
-    The control attribute is a Boolean; an absent attribute or ``false`` means
-    per-member connectors, so the stored value must be read, never the presence
-    of the attribute.
-    """
-    attribute = port_def.attributes.get(FLAT_CONNECTOR_ATTR)
-    return attribute is not None and bool(attribute.value)
-
-
 def _multiplicity_text(port_usage: PortUsage) -> str:
     return f"[{port_usage.multiplicity}]" if port_usage.multiplicity else ""
 
@@ -189,6 +172,7 @@ def _add_part_connectors(
     architecture: Architecture,
     parameter_model: bool,
     *,
+    flat: bool,
     base_index: int = 0,
 ) -> None:
     """Append port and parameter connectors for one component or system."""
@@ -202,11 +186,8 @@ def _add_part_connectors(
         if is_parameter_interface(port_def):
             # Emitted by the parameter branch below, flattened to member names.
             continue
-        flat = flat_connector(port_def)
         for index in _port_indices(port_usage):
             for attribute in port_def.attributes.values():
-                if is_control_attribute(attribute.name):
-                    continue
                 connector_name = _connector_name(
                     port_usage, attribute.name, flat, index
                 )
@@ -232,6 +213,8 @@ def _add_connections(
     part_def: PartDefinition,
     architecture: Architecture,
     type_check: bool,
+    *,
+    flat: bool,
 ) -> None:
     """Append this system level's connections to an SSD system."""
     for conn in part_def.connections.values():
@@ -256,8 +239,6 @@ def _add_connections(
                 f"{conn.destination_port} must be same type"
             )
 
-        src_flat = flat_connector(src_port_def)
-        dst_flat = flat_connector(dst_port_def)
         src_indices = _port_indices(src_port_usage)
         dst_indices = _port_indices(dst_port_usage)
         if src_indices != dst_indices:
@@ -268,17 +249,15 @@ def _add_connections(
                 f"{dst_port_usage.name}{_multiplicity_text(dst_port_usage)}"
             )
         for index in src_indices:
-            for attribute_name in src_port_def.attributes.keys():
-                if is_control_attribute(attribute_name):
-                    continue
+            for attribute_name in src_port_def.attributes:
                 target_system.add_connection(
                     start_element=conn.source_part,
                     start_connector=_connector_name(
-                        src_port_usage, attribute_name, src_flat, index
+                        src_port_usage, attribute_name, flat, index
                     ),
                     end_element=conn.destination_part,
                     end_connector=_connector_name(
-                        dst_port_usage, attribute_name, dst_flat, index
+                        dst_port_usage, attribute_name, flat, index
                     ),
                 )
 
@@ -290,6 +269,7 @@ def _write_elements(
     *,
     parameter_model: bool,
     type_check: bool,
+    flat: bool,
     base_index: int = 0,
 ) -> None:
     """Recursively write nested systems and leaf FMU components."""
@@ -307,13 +287,21 @@ def _write_elements(
                     "a nested system cannot also be an FMU component"
                 )
             nested = parent.add_subsystem(part_name)
-            _add_part_connectors(nested, child, architecture, parameter_model, base_index=base_index)
+            _add_part_connectors(
+                nested,
+                child,
+                architecture,
+                parameter_model,
+                flat=flat,
+                base_index=base_index,
+            )
             _write_elements(
                 nested,
                 child,
                 architecture,
                 parameter_model=parameter_model,
                 type_check=type_check,
+                flat=flat,
                 base_index=base_index,
             )
             continue
@@ -324,9 +312,16 @@ def _write_elements(
             component_type="application/x-fmu-sharedlibrary",
             implementation=component_implementation(metadata),
         )
-        _add_part_connectors(component, child, architecture, parameter_model, base_index=base_index)
+        _add_part_connectors(
+            component,
+            child,
+            architecture,
+            parameter_model,
+            flat=flat,
+            base_index=base_index,
+        )
 
-    _add_connections(parent, part_def, architecture, type_check)
+    _add_connections(parent, part_def, architecture, type_check, flat=flat)
 
 
 def build_ssd(
@@ -337,7 +332,15 @@ def build_ssd(
     parameter_set_prefix: str = "parameter_sets",
     *,
     base_index: int = 0,
+    flat_connector: bool = False,
 ) -> None:
+    """Write one SSD from ``system``.
+
+    ``flat_connector`` selects the connector naming style: ``False`` (the
+    default) emits ``port.member`` names, ``True`` emits one ``port`` name per
+    member. Flattening is an export option, never model data, so the same
+    architecture can be exported both ways.
+    """
     validate_role_markers(architecture)
     if is_analysis(architecture, system):
         raise ValueError(
@@ -362,21 +365,28 @@ def build_ssd(
     parameter_model = has_parameter_dialect(architecture, system, policy=SSP_POLICY)
     specs = mapping_specs(architecture, system, policy=SSP_POLICY, base_index=base_index) if parameter_model else []
 
-    _add_part_connectors(top, system, architecture, parameter_model, base_index=base_index)
+    _add_part_connectors(
+        top,
+        system,
+        architecture,
+        parameter_model,
+        flat=flat_connector,
+        base_index=base_index,
+    )
     _write_elements(
         top,
         system,
         architecture,
         parameter_model=parameter_model,
         type_check=type_check,
+        flat=flat_connector,
         base_index=base_index,
     )
 
-    start = system.attributes.get(DEFAULT_START_ATTR)
-    stop = system.attributes.get(DEFAULT_STOP_ATTR)
+    experiment = read_experiment(architecture, system, required=False)
     ssd.set_default_experiment(
-        start_time=float(start.value) if start is not None else 0,
-        stop_time=float(stop.value) if stop is not None else 3600,
+        start_time=experiment.start_time if experiment is not None else 0,
+        stop_time=experiment.stop_time if experiment is not None else 3600,
     )
 
     if parameter_model:
@@ -394,12 +404,16 @@ def generate_ssd(
     *,
     includes: Sequence[Path | str] = (),
     base_index: int = 0,
+    flat_connector: bool = False,
 ) -> Path:
     """Write an SSD for one composition.
 
     ``base_index`` is the first array index emitted in parameter connector
     names, e.g. 0 -> ``waypointX_km[0]`` and 1 -> ``waypointX_km[1]``. Data
     ports keep their FMI-style 1-based indices regardless.
+
+    ``flat_connector`` names each connector for the port alone instead of
+    ``port.member``; it is an export option, not model data.
 
     ``includes`` names additional definition roots (files or directories)
     merged into the loaded architecture; pass
@@ -426,5 +440,6 @@ def generate_ssd(
             type_check,
             parameter_set_prefix=parameter_set_prefix,
             base_index=base_index,
+            flat_connector=flat_connector,
         )
     return output_path

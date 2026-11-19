@@ -24,8 +24,9 @@ status: current
 - **Explicit bind**: a per-member bind. It produces an SSP mapping entry.
 - **Component path**: the dotted part-usage path from the composition root to a
   component or nested system, for example `outer.inner`.
-- **Control attribute**: a `pyssp_*` attribute carrying metadata with no
-  first-class SysML v2 equivalent. Generators skip it as model data.
+- **Typed metadata container**: an `attribute <name> : <Def>;` whose type
+  specializes a dialect marker (an experiment, FMU metadata, or SSP metadata).
+  It carries data with no first-class SysML v2 equivalent.
 - **Leaf component**: a part definition with no subparts. It becomes an SSD
   `Component`; its FMI model description is `pyfmi_sysml2`'s (`INFO-031`).
 - **Nested system**: a part definition with subparts. It becomes a nested SSD

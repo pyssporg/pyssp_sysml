@@ -19,7 +19,6 @@ def _write_architecture(
     source: str | None,
     implementation: str | None = "CoSimulation",
     parameterized: bool = True,
-    flat_connector: bool | str = False,
 ) -> Path:
     fields = []
     if source is not None:
@@ -58,11 +57,6 @@ def _write_architecture(
             metadata_fields=metadata_fields,
             parameter_port=parameter_port,
             composition_parameters=composition_parameters,
-            flat_connector=(
-                "attribute pyssp_flat_connector : Boolean = true;"
-                if flat_connector is True
-                else (flat_connector if isinstance(flat_connector, str) else "")
-            ),
             COMPOSITION_NAME=COMPOSITION_NAME,
         ),
     )
@@ -220,20 +214,6 @@ def test_generate_ssp_rejects_connector_name_mismatch(tmp_path: Path) -> None:
     _write_mismatched_fmu(tmp_path / "Comp.fmu")
 
     with pytest.raises(ValueError, match="missing variable"):
-        generate_ssp(
-            architecture_dir, tmp_path / "model.ssp", COMPOSITION_NAME
-        )
-
-
-def test_generate_ssp_validates_ssd_connector_names(tmp_path: Path) -> None:
-    architecture_dir = _write_architecture(
-        tmp_path / "arch",
-        source=str(tmp_path / "Comp.fmu"),
-        flat_connector=True,
-    )
-    _build_fmu(tmp_path / "Comp.fmu")
-
-    with pytest.raises(ValueError, match="missing variable.*output"):
         generate_ssp(
             architecture_dir, tmp_path / "model.ssp", COMPOSITION_NAME
         )

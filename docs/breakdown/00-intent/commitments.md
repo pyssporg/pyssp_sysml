@@ -18,8 +18,9 @@ status: current
 - **Standard handling is delegated.** SSP XML objects come from
   `pyssp_standard`, at the SSP border only (`INFO-028`).
 - **Generated SysML is deliberately minimal.** Only SSD information with a
-  documented SysML representation is emitted. The rest is carried as typed FMU
-  metadata or `pyssp_*` control attributes and preserved on regeneration.
+  documented SysML representation is emitted. The rest is carried as typed
+  attribute containers, such as FMU metadata or an experiment container, and
+  preserved on regeneration.
 - **Round-trip limits are explicit.** Fidelity limits are documented in
   `INFO-041`; they are not to be presented as full round-trip.
 - **The code is the source of truth.** When the documented dialect and the

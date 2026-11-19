@@ -30,8 +30,8 @@ status: current
   part definition may have at most one such port.
 - A `parameters` port on the composition root is rejected. Attach interfaces to
   component or nested-system usages (`INFO-002`).
-- `pyssp_` names are control attributes. Generators skip them as parameter
-  data. Do not use the prefix for parameters (`INFO-004`).
+- `pyssp_` names were removed in dialect 0.3.0; a remaining name is a
+  migration error. Model data uses typed containers (`INFO-004`).
 - SysML keywords are rejected as parameter names: `part`, `port`, `attribute`,
   `bind`, `typed`, `comment`. They would produce a file that cannot be parsed
   back.

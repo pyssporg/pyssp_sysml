@@ -5,6 +5,9 @@ from pathlib import Path
 import pytest
 from pyssp_standard import SSD, SSM, SSV
 
+from pycps_sysml2 import core_definitions
+from pycps_sysml2.metadata.roles import read_experiment
+from pyssp_sysml2.artifacts.ssd import generate_ssd
 from pyssp_sysml2.sysml.generate import generate_sysml_from_ssd
 from pyssp_sysml2.model import load
 from tests.fixture_files import assert_matches_fixture, fixture_text
@@ -25,6 +28,42 @@ def test_generate_sysml_from_ssd_uses_ssd_system_name_by_default(tmp_path: Path)
 
     assert written == output
     assert_matches_fixture(_architecture_text(output), "generate-sysml/ssd-system-name.sysml")
+
+
+def test_generate_sysml_round_trips_the_default_experiment(
+    tmp_path: Path,
+) -> None:
+    """The SSD experiment becomes a local DefaultExperiment container."""
+    ssd_path = tmp_path / "SystemStructure.ssd"
+    with SSD(ssd_path, mode="w") as ssd:
+        top = ssd.new_system("Plant")
+        ssd.rename("Plant")
+        src = top.add_component("src", source="resources/Source.fmu")
+        src.add_connector(name="outSig.x", kind="output", type_name="Real")
+        ssd.set_default_experiment(start_time=2.0, stop_time=8.0)
+
+    output = tmp_path / "Plant.sysml"
+    generate_sysml_from_ssd(ssd_path, output)
+
+    text = output.read_text()
+    assert "attribute def PlantDefaults :> DefaultExperiment {" in text
+    assert "attribute startTime : Real = 2.0;" in text
+    assert "attribute stopTime : Real = 8.0;" in text
+    assert "attribute defaults : PlantDefaults;" in text
+
+    architecture = load(output, core_definitions())
+    experiment = read_experiment(
+        architecture, architecture.get_part_def("Plant"), required=False
+    )
+    assert experiment is not None
+    assert (experiment.start_time, experiment.stop_time) == (2.0, 8.0)
+    assert experiment.step_size is None
+
+    regenerated = tmp_path / "regenerated.ssd"
+    generate_ssd(output, regenerated, "Plant", includes=(core_definitions(),))
+    with SSD(regenerated, mode="r") as ssd:
+        assert ssd.default_experiment.start_time == 2.0
+        assert ssd.default_experiment.stop_time == 8.0
 
 
 def test_generate_sysml_from_ssd_allows_overriding_composition_name(tmp_path: Path) -> None:

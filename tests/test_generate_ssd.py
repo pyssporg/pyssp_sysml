@@ -121,6 +121,59 @@ def test_generate_ssd_writes_core_ssd_metadata(tmp_path: Path) -> None:
         assert component.source == ""
 
 
+def test_generate_ssd_reads_the_experiment_container(tmp_path: Path) -> None:
+    """A typed DefaultExperiment container supplies the SSD start and stop."""
+    architecture_dir = tmp_path / "arch"
+    write_model(
+        architecture_dir / "model.sysml",
+        render_fixture(
+            "generate-ssd/default-experiment.sysml",
+            COMPOSITION_NAME=COMPOSITION_NAME,
+        ),
+    )
+
+    output_path = tmp_path / "SystemStructure.ssd"
+    generate_ssd(architecture_dir, output_path, COMPOSITION_NAME)
+
+    with SSD(output_path, mode="r") as ssd:
+        assert ssd.default_experiment is not None
+        assert ssd.default_experiment.start_time == 2.0
+        assert ssd.default_experiment.stop_time == 8.0
+
+
+def test_generate_ssd_rejects_retired_experiment_attributes(tmp_path: Path) -> None:
+    """The removed start/stop attributes name the container replacement."""
+    architecture_dir = tmp_path / "arch"
+    write_model(
+        architecture_dir / "model.sysml",
+        fixture_text("generate-ssd/retired-default-experiment.sysml"),
+    )
+
+    with pytest.raises(
+        ValueError,
+        match=r"pyssp_default_start_time .*DefaultExperiment",
+    ):
+        generate_ssd(
+            architecture_dir, tmp_path / "SystemStructure.ssd", "Model"
+        )
+
+
+def test_generate_ssd_rejects_the_retired_flat_connector_attribute(
+    tmp_path: Path,
+) -> None:
+    """Flattening is an export option and no longer model data."""
+    architecture_dir = tmp_path / "arch"
+    write_model(
+        architecture_dir / "model.sysml",
+        fixture_text("generate-ssd/retired-flat-connector.sysml"),
+    )
+
+    with pytest.raises(ValueError, match="--flat-connector"):
+        generate_ssd(
+            architecture_dir, tmp_path / "SystemStructure.ssd", "Model"
+        )
+
+
 def test_generate_ssd_rejects_retired_parameter_set_attribute(tmp_path: Path) -> None:
     """The legacy external SSV pointer is replaced by SysML-defined sets."""
     architecture_dir = tmp_path / "arch"
@@ -132,7 +185,7 @@ def test_generate_ssd_rejects_retired_parameter_set_attribute(tmp_path: Path) ->
     )
 
     output_path = tmp_path / "SystemStructure.ssd"
-    with pytest.raises(ValueError, match="pyssp_parameter_set is no longer supported"):
+    with pytest.raises(ValueError, match=r"pyssp_parameter_set .*ParameterSet"):
         generate_ssd(architecture_dir, output_path, COMPOSITION_NAME)
 
 
@@ -242,7 +295,9 @@ def test_port_multiplicity_expands_connectors_and_connections(tmp_path) -> None:
     )
 
     output_path = tmp_path / "SystemStructure.ssd"
-    generate_ssd(architecture_dir, output_path, "System")
+    generate_ssd(
+        architecture_dir, output_path, "System", flat_connector=True
+    )
 
     assert _ssd_summary(output_path) == [
         "component sink",

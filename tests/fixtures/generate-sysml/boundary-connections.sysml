@@ -1,6 +1,5 @@
 package RecoveredFromSSD {
   port def Port_1 {
-    attribute pyssp_flat_connector : Boolean = true;
     attribute value : Real;
   }
 

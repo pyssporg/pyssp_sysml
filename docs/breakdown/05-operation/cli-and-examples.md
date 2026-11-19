@@ -26,6 +26,10 @@ Subcommands:
 `--select KEY=VARIANT` values; `generate ssp` also accepts `--configuration`
 for the selection provenance.
 
+`generate ssd` accepts `--flat-connector`: it emits one scalar connector per
+port (`signal`) instead of `port.member` names (`signal.value`). Flattening is
+an export option, never model data, so the same architecture exports both ways.
+
 `ssp`, `ssd`, `ssv`, `ssm`, `analysis`, `sync ssd`, and `validate` accept
 repeatable `--architecture` flags. The first occurrence is the model root;
 every later one is an included definition root forwarded as `includes`.
