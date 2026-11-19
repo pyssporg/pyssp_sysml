@@ -45,7 +45,17 @@ fields through to the SSD and the archive.
   `generate ssp` reads it to add the FMU to the archive.
 - When a source is declared, `generate ssd` writes
   `Component/@source="resources/<PartDefinition>.fmu"`.
-- `implementation` maps to `Component/@implementation`.
+- `implementation` maps to `Component/@implementation` and must be one of the
+  closed SSP set `any`, `ModelExchange`, `CoSimulation`, or
+  `ScheduledExecution`.
 - Without a source, the component is exported with an empty `source`.
+
+`source` and `implementation` are `ssd:Component` attributes, not
+`fmiModelDescription` fields: `FmuMetadata` describes an FMI model packaged as
+an SSP component, so `FmuMetadata`, `FmuModel`, and `fmu_meta` keep their names.
+
+An experiment container is projected by SSP disposition: only `startTime` and
+`stopTime` reach the SSD's `DefaultExperiment`; `stepSize` and `tolerance` are
+FMI fields and are intentionally dropped.
 
 FMI generation itself is `pyfmi_sysml2`'s (`INFO-031`).

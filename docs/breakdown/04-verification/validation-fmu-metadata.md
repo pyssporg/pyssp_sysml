@@ -23,6 +23,10 @@ status: current
   `fmu_meta` reports `has both subparts and 'fmu_meta' metadata`.
 - Only known members are allowed: `source` and `implementation`.
 - Member values must be strings.
+- `implementation` must be one of the closed SSP values `any`, `ModelExchange`,
+  `CoSimulation`, `ScheduledExecution`; any other string is reported.
+- An experiment's `startTime` and `stopTime` are the only fields projected to
+  the SSD; `stepSize` and `tolerance` are accepted but not written.
 - `pyssp_implementation` is retired; move it into `fmu_meta`.
 - `pyssp_parameter_set` is retired; define a set in SysML and bind it.
 

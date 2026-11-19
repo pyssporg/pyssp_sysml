@@ -23,6 +23,8 @@ Records live in the cold-storage archive; extract one with `pb archive read <ID>
   SSD and preflight resolve inherited members through pycps_sysml2, while the SSV writer and SysML synthesis stay declared-only.
 - **AD-007** — SSD drops the experiment tolerance · accepted · 2026-11-19 · `AD-007`
   SSP 2.0's DefaultExperiment has no tolerance attribute, so the SSD writer emits only startTime and stopTime.
+- **AD-008** — implementation is closed and the SSD keeps only the SSP experiment fields · accepted · 2026-11-19 · `AD-008`
+  pyssp_sysml2 validates implementation against the four ssd:Component values and projects only startTime and stopTime into the .ssd.
 
 ### Implementation
 
