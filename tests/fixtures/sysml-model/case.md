@@ -58,9 +58,10 @@ Inputs, relative to this directory. None is generated.
 | `escapes.sysml` | string literals with `\n`, `\\`, and `\"` escapes |
 | `negative.sysml` | negative real and integer literals keep their sign |
 | `units.sysml` | unit literal loads as its bare magnitude |
-| `directions.sysml` | in, out, inout, and undirected ports |
+| `directions.sysml` | in, out, inout, and undirected ports; directed port members |
 | `doc.sysml` | part def doc comment |
 | `portdef.sysml` | port def doc and ordered attributes |
+| `port-item.sysml` | a port def with an item member; loading is refused |
 | `requirement.sysml` | requirement def text |
 | `definition-specialization.sysml` | port and attribute defs keep specialization and members |
 | `attribute-multiplicity.sysml` | fixed, bounded, unbounded, and scalar multiplicity |

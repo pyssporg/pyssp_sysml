@@ -21,7 +21,7 @@ Belongs here:
 Belongs elsewhere:
 
 - SysML v2 parsing, the dataclasses, the dialect markers, parameter interfaces
-  and sets with their binds and resolution, control attributes, variation,
+  and sets with their binds and resolution, typed metadata containers, variation,
   configuration, selection, and constraints: `pycps_sysml2`.
 - FMI model descriptions, C headers, Modelica connectors, and the FMU zip:
   `pyfmi_sysml2`.

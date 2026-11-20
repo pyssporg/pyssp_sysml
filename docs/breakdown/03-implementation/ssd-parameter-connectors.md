@@ -9,7 +9,8 @@ status: current
 
 # SSD parameter connectors
 
-Parameter connectors come from the component's interface.
+Parameter connectors come from the component's effective interface, inherited
+members included.
 
 - A member `attribute waypointCount : Integer;` becomes
   `<ssd:Connector name="waypointCount" kind="parameter"><ssc:Integer /></ssd:Connector>`.

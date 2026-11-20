@@ -134,7 +134,8 @@ def generate_analysis(
             "the scenario to the analysis."
         )
 
-    experiment = read_experiment(architecture, analysis)
+    experiment = read_experiment(architecture, analysis, required=True)
+    assert experiment is not None
     model_metadata = ssp_metadata(architecture, model_definition)
     ensure_directory(output_dir)
 

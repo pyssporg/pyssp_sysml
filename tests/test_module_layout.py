@@ -72,7 +72,9 @@ SHIM_IMPORT = re.compile(
 #: Modules that exceeded the line budget when the layout was introduced.
 #: Entries must name real files and carry a one-line reason.
 MAX_MODULE_LINES = 600
-LARGE_MODULES: dict[str, str] = {}
+LARGE_MODULES: dict[str, str] = {
+    "artifacts/ssd.py": "effective-member enumeration for inherited definitions",
+}
 
 #: The parameters package deliberately has no flat re-export surface; callers
 #: import the precise layer. A shim would undo the split silently.

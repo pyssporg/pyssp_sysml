@@ -323,7 +323,7 @@ def test_retired_implementation_attribute_is_rejected(tmp_path) -> None:
     )
 
     with pytest.raises(
-        ValueError, match="pyssp_implementation is no longer supported"
+        ValueError, match=r"pyssp_implementation .* is no longer supported"
     ):
         generate_ssd(
             architecture_dir, tmp_path / "SystemStructure.ssd", COMPOSITION_NAME
@@ -348,9 +348,11 @@ def test_sysml_roundtrip_preserves_implementation_without_source(tmp_path) -> No
     generate_sysml_from_ssd(ssd_path, generated, COMPOSITION_NAME)
 
     text = generated.read_text()
+    assert "part def FmuModel;" in text
     assert "attribute def FmuMetadata {" in text
     assert "attribute def RenamedFmuMetadata :> FmuMetadata {" in text
     assert 'attribute implementation : String = "CoSimulation";' in text
+    assert "part def Renamed :> FmuModel {" in text
     assert "attribute fmu_meta : RenamedFmuMetadata;" in text
 
     regenerated = tmp_path / "regenerated.ssd"

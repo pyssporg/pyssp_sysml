@@ -13,8 +13,8 @@ status: current
 every failure without writing an artifact. The checklist below remains the human
 review; the command is the runnable subset:
 `check_fmu_interfaces` compares the expected SSD connector names with each FMU's
-`variable_names`, reading `pyssp_flat_connector` by value and using the same
-parameter `base_index` as the generator.
+`variable_names`, using the same `flat_connector` choice and parameter
+`base_index` as the generator.
 
 - Markers exist: `ParameterInterface`, `ParameterSet`, and `FmuMetadata` when
   used.
@@ -39,6 +39,6 @@ parameter `base_index` as the generator.
 - Sync SSD connectors use `port.attribute` form.
 - All files use the same package name and tuple list values.
 - Each parameterized part has at most one `parameters` port.
-- A part with subparts is intended as a system, not an FMU.
+- A part with effective subparts is intended as a system, not an FMU.
 - Connected ports use compatible port definitions.
 - If round-tripping, the expected synthesized name changes are known.

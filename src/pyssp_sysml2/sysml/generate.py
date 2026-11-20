@@ -6,16 +6,11 @@ from typing import Iterable
 
 from pyssp_standard import Component, SSD, System
 
-from pycps_sysml2.core.control import (
-    DEFAULT_START_ATTR,
-    DEFAULT_STOP_ATTR,
-    FLAT_CONNECTOR_ATTR,
-    is_control_attribute,
-)
 from pycps_sysml2.metadata.fmu_metadata import update_fmu_metadata_from_component
 from pycps_sysml2.model import (
     Architecture,
     Attribute,
+    AttributeDefinition,
     Connection,
     PartDefinition,
     PartUsage,
@@ -27,7 +22,6 @@ from pycps_sysml2.model import (
 from pycps_sysml2.parameters.dialect.markers import is_parameter_interface
 from pycps_sysml2.parameters.variation import refuse_variation_erasure
 
-from pyssp_sysml2.artifacts.ssd import flat_connector
 from pyssp_sysml2.core.paths import DEFAULT_PACKAGE_NAME, ensure_parent_dir
 from pyssp_sysml2.parameters.synthesis.generation import synthesize_parameter_dialect
 
@@ -87,8 +81,45 @@ def _part_name_from_component(component: Component) -> str:
     raise ValueError("SSD component without a name cannot be synced")
 
 
-def _control_attribute(name: str, value: object, type_name: str) -> Attribute:
-    return Attribute(name=name, type_name=type_name, value=value)
+def _default_experiment_definition_name(
+    architecture: Architecture, composition: str
+) -> str:
+    base = f"{composition}Defaults"
+    candidate = base
+    counter = 2
+    while candidate in architecture.attribute_definitions:
+        candidate = f"{base}_{counter}"
+        counter += 1
+    return candidate
+
+
+def _add_default_experiment(
+    architecture: Architecture,
+    system: PartDefinition,
+    default_experiment,
+) -> None:
+    """Attach the SSD experiment as a local ``DefaultExperiment`` container."""
+    definition = AttributeDefinition(
+        name=_default_experiment_definition_name(architecture, system.name),
+        source_file="architecture.sysml",
+        specializes=("DefaultExperiment",),
+        attributes={
+            "startTime": Attribute(
+                name="startTime",
+                type_name="Real",
+                value=default_experiment.start_time,
+            ),
+            "stopTime": Attribute(
+                name="stopTime",
+                type_name="Real",
+                value=default_experiment.stop_time,
+            ),
+        },
+    )
+    architecture.add_attribute_def(definition)
+    system.attributes["defaults"] = Attribute(
+        name="defaults", type_name=definition.name
+    )
 
 
 def _port_connector_groups(element) -> dict[str, list[tuple[str, object]]]:
@@ -103,12 +134,10 @@ def _port_connector_groups(element) -> dict[str, list[tuple[str, object]]]:
 
 def _port_signature_from_connectors(
     connectors: list[tuple[str, object]],
-) -> tuple[tuple[tuple[str, str], ...], bool]:
+) -> tuple[tuple[str, str, str | None], ...]:
     attrs: dict[str, str] = {}
-    flat = False
+    kinds: dict[str, set[str]] = {}
     for attribute_name, connector in connectors:
-        if "." not in connector.name:
-            flat = True
         attr_type = _type_name_from_connector(connector)
         previous = attrs.get(attribute_name)
         attrs[attribute_name] = (
@@ -116,88 +145,150 @@ def _port_signature_from_connectors(
             if previous is None
             else _merge_type_names([previous, attr_type])
         )
+        kinds.setdefault(attribute_name, set()).add(
+            "out" if connector.kind == "output" else "in"
+        )
     is_scalar = len(attrs) <= 1
-    canonical = {
-        SCALAR_ATTRIBUTE_NAME if is_scalar else name: attr_type
-        for name, attr_type in attrs.items()
-    }
-    return tuple(sorted(canonical.items())), flat
+    # A uniform port is directionless per member: its usage direction carries
+    # the kind. Only a mixed port needs an explicit direction on each member.
+    mixed = len({kind for attr_kinds in kinds.values() for kind in attr_kinds}) > 1
+    canonical: dict[str, tuple[str, str | None]] = {}
+    for name, attr_type in attrs.items():
+        direction = None
+        if mixed:
+            attr_kinds = kinds[name]
+            direction = (
+                next(iter(attr_kinds)) if len(attr_kinds) == 1 else "inout"
+            )
+        canonical[SCALAR_ATTRIBUTE_NAME if is_scalar else name] = (
+            attr_type,
+            direction,
+        )
+    return tuple(
+        sorted(
+            (
+                name,
+                attr_type,
+                direction,
+            )
+            for name, (attr_type, direction) in canonical.items()
+        )
+    )
 
 
 def _port_def_signature(
     port_def: PortDefinition,
-) -> tuple[tuple[str, str], ...]:
+) -> tuple[tuple[str, str, str | None], ...]:
     return tuple(
         sorted(
-            (attribute.name, attribute.effective_type_name)
+            (attribute.name, attribute.effective_type_name, attribute.direction)
             for attribute in port_def.attributes.values()
-            if not is_control_attribute(attribute.name)
+        )
+    )
+
+
+def _flip_direction(direction: str | None) -> str | None:
+    """``in`` and ``out`` swapped, ``inout`` and undirected unchanged."""
+    return {"in": "out", "out": "in"}.get(direction, direction)
+
+
+def _flipped_signature(
+    signature: tuple[tuple[str, str, str | None], ...],
+) -> tuple[tuple[str, str, str | None], ...]:
+    """A port signature with every ``in``/``out`` member direction flipped.
+
+    ``inout`` and undirected members stay as written: conjugation flips only
+    the directed features of the definition, so a flipped signature is the
+    signature of the same definition used as ``~P``.
+    """
+    return tuple(
+        sorted(
+            (name, type_name, _flip_direction(direction))
+            for name, type_name, direction in signature
         )
     )
 
 
 def _port_def_for(
     architecture: Architecture,
-    cache: dict[tuple[tuple[tuple[str, str], ...], bool], PortDefinition],
-    signature: tuple[tuple[str, str], ...],
-    flat: bool,
+    cache: dict[tuple[tuple[str, str, str | None], ...], PortDefinition],
+    signature: tuple[tuple[str, str, str | None], ...],
     *,
     source_file: str = "architecture.sysml",
-) -> PortDefinition:
-    key = (signature, flat)
-    port_def = cache.get(key)
+) -> tuple[PortDefinition, bool]:
+    """The definition serving *signature*, and whether it is used conjugated.
+
+    An exact signature match is used as written. A definition whose member
+    directions are the flip of the signature's serves it as ``~P``, which is
+    what lets one definition serve both ends of a connection. A port usage
+    records only the base name and the conjugation flag.
+    """
+    port_def = cache.get(signature)
     if port_def is not None:
-        return port_def
+        return port_def, False
     for existing in architecture.port_definitions.values():
-        if is_parameter_interface(existing):
+        if is_parameter_interface(architecture, existing):
             continue
-        if (
-            _port_def_signature(existing) == signature
-            and flat_connector(existing) == flat
-        ):
-            cache[key] = existing
-            return existing
+        if _port_def_signature(existing) == signature:
+            cache[signature] = existing
+            return existing, False
+    flipped = _flipped_signature(signature)
+    for existing in architecture.port_definitions.values():
+        if is_parameter_interface(architecture, existing):
+            continue
+        if _port_def_signature(existing) == flipped:
+            return existing, True
 
     port_def = PortDefinition(
         name=f"Port_{len(architecture.port_definitions) + 1}",
         source_file=source_file,
     )
-    for attribute_name, attribute_type in signature:
+    for attribute_name, attribute_type, attribute_direction in signature:
         port_def.attributes[attribute_name] = Attribute(
             name=attribute_name,
             type_name=attribute_type,
             value=None,
-        )
-    if flat:
-        port_def.attributes[FLAT_CONNECTOR_ATTR] = _control_attribute(
-            FLAT_CONNECTOR_ATTR, True, "Boolean"
+            direction=attribute_direction,
         )
     architecture.add_port_def(port_def)
-    cache[key] = port_def
-    return port_def
+    cache[signature] = port_def
+    return port_def, False
 
 
 def _ensure_ports_for_element(
     part_def: PartDefinition,
     element,
     architecture: Architecture,
-    cache: dict[tuple[tuple[tuple[str, str], ...], bool], PortDefinition],
+    cache: dict[tuple[tuple[str, str, str | None], ...], PortDefinition],
     *,
     source_file: str = "architecture.sysml",
 ) -> None:
     for port_name, connectors in sorted(_port_connector_groups(element).items()):
-        signature, flat = _port_signature_from_connectors(connectors)
-        port_def = _port_def_for(
-            architecture, cache, signature, flat, source_file=source_file
+        signature = _port_signature_from_connectors(connectors)
+        port_def, conjugated = _port_def_for(
+            architecture, cache, signature, source_file=source_file
         )
-        direction = (
-            "out"
-            if any(connector.kind == "output" for _, connector in connectors)
-            else "in"
-        )
+        member_directions = {
+            _flip_direction(attribute.direction) if conjugated else attribute.direction
+            for attribute in port_def.attributes.values()
+            if attribute.direction is not None
+        }
+        if len(member_directions) == 1:
+            direction = next(iter(member_directions))
+        elif member_directions:
+            direction = "inout"
+        else:
+            direction = (
+                "out"
+                if any(connector.kind == "output" for _, connector in connectors)
+                else "in"
+            )
         existing = part_def.ports.get(port_name)
         if existing is not None:
-            if existing.type_name != port_def.name:
+            if (
+                existing.type_name != port_def.name
+                or existing.conjugated != conjugated
+            ):
                 raise ValueError(
                     f"{part_def.name}.{port_name} is declared with conflicting "
                     "port types"
@@ -207,6 +298,7 @@ def _ensure_ports_for_element(
             name=port_name,
             direction=direction,
             type_name=port_def.name,
+            conjugated=conjugated,
         )
 
 
@@ -223,7 +315,7 @@ def _ensure_component_part_def(
     architecture: Architecture,
     component: Component,
     component_defs: dict[str, PartDefinition],
-    port_cache: dict[tuple[tuple[tuple[str, str], ...], bool], PortDefinition],
+    port_cache: dict[tuple[tuple[str, str, str | None], ...], PortDefinition],
 ) -> PartDefinition:
     base_name = _part_name_from_component(component)
     part_def = component_defs.get(base_name)
@@ -250,7 +342,7 @@ def _ensure_component_part_def(
 def _ensure_system_part_def(
     architecture: Architecture,
     system_element,
-    port_cache: dict[tuple[tuple[tuple[str, str], ...], bool], PortDefinition],
+    port_cache: dict[tuple[tuple[str, str, str | None], ...], PortDefinition],
     *,
     source_file: str = "architecture.sysml",
 ) -> PartDefinition:
@@ -380,7 +472,7 @@ def _build_system_children(
     ssd_system,
     architecture: Architecture,
     component_defs: dict[str, PartDefinition],
-    port_cache: dict[tuple[tuple[tuple[str, str], ...], bool], PortDefinition],
+    port_cache: dict[tuple[tuple[str, str, str | None], ...], PortDefinition],
 ) -> None:
     child_elements: dict[str, Component | System] = {}
     for element in sorted(
@@ -433,20 +525,13 @@ def build_architecture_from_ssd(
     default_experiment=None,
 ):
     architecture = Architecture(package_name=DEFAULT_PACKAGE_NAME)
-    port_cache: dict[
-        tuple[tuple[tuple[str, str], ...], bool], PortDefinition
-    ] = {}
+    port_cache: dict[tuple[tuple[str, str, str | None], ...], PortDefinition] = {}
 
     system = PartDefinition(name=composition, source_file="architecture.sysml")
     architecture.add_part_def(system)
     _ensure_ports_for_element(system, ssd_system, architecture, port_cache)
     if default_experiment is not None:
-        system.attributes[DEFAULT_START_ATTR] = _control_attribute(
-            DEFAULT_START_ATTR, default_experiment.start_time, "Real"
-        )
-        system.attributes[DEFAULT_STOP_ATTR] = _control_attribute(
-            DEFAULT_STOP_ATTR, default_experiment.stop_time, "Real"
-        )
+        _add_default_experiment(architecture, system, default_experiment)
 
     component_defs: dict[str, PartDefinition] = {}
     _build_system_children(

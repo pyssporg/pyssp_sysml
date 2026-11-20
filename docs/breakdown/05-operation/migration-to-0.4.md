@@ -43,6 +43,8 @@ Import shims:
 
 Behaviour change:
 
-- `pyssp_flat_connector = false` now means **not flattened**. The old code read
+- Superseded in 0.6.0: flattening is now the `--flat-connector` export option,
+  and the attribute itself is a migration error.
+- `pyssp_flat_connector = false` meant **not flattened**. The old code read
   the attribute for presence, so `false` still flattened. The value now decides,
   which is a deliberate fix (`AD-004`).

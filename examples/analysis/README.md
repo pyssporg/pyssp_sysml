@@ -86,4 +86,5 @@ pyssp generate ssd \
   scenario set, and one attribute typed by an `Experiment`.
 - `generate ssp` accepts `PositionServo` but rejects any `:> Analysis`
   composition. Packaging the model as an SSP additionally requires
-  `fmu_meta.source` on each leaf component.
+  `fmu_meta.source` on each leaf component, which also means marking those
+  leaves `:> FmuModel` and declaring `part def FmuModel;` in the package.

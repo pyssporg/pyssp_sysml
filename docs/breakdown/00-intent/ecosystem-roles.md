@@ -18,7 +18,7 @@ sysmlpy==0.96.4
 ```
 
 - **`pycps_sysml2`** owns the SysML v2 dialect: `load()`, the dataclasses, the
-  markers, the parameter dialect and its resolution, control attributes,
+  markers, the parameter dialect and its resolution, typed metadata containers,
   variation, configuration, selection, constraints, and the role and dialect
   policies. It has no `pyssp_standard` dependency.
 - **`pyssp_sysml2`** emits SSD, SSV, SSM, the analysis descriptor, and the

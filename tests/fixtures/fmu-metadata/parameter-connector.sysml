@@ -2,6 +2,8 @@ package Example {
           port def ParameterInterface;
           attribute def ParameterSet;
 
+          part def FmuModel;
+
           attribute def FmuMetadata { attribute implementation : String; }
 
           attribute def CompFmu :> FmuMetadata {
@@ -12,7 +14,7 @@ package Example {
             attribute gain : Real;
           }
 
-          part def Comp {
+          part def Comp :> FmuModel {
             attribute fmu_meta : CompFmu;
             in port parameters : CompParameters;
           }

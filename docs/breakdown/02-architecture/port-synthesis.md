@@ -25,6 +25,12 @@ names; parameter lists keep the 0-based SSV convention (`CP-004`).
 
 A connection between ports of different fixed multiplicity is rejected.
 
+An attribute member may also declare a fixed multiplicity. It expands inside
+every port occurrence: `attribute X : Real[3]` in a grouped port emits
+`port.X[1]`, `port.X[2]`, and `port.X[3]`, and a connection pairs the elements
+by member name. Unequal lengths are rejected. An array cannot be named under
+flat connector naming, where the port has one connector name.
+
 `sync ssd` still requires `port.attribute` endpoints. Scalar SSD connections
 are not syncable.
 

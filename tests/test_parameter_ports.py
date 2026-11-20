@@ -5,11 +5,14 @@ from pathlib import Path
 import pytest
 from pyssp_standard import SSD
 
+from pycps_sysml2.parameters.dialect.composition import validate_parameter_dialect
+from pycps_sysml2.parameters.policy import SSP_POLICY
 from pyssp_sysml2.parameters.dialect.declarations import (
     parameter_declarations,
     parameter_interface,
 )
 from pyssp_sysml2.parameters.dialect.markers import validate_marker_definitions
+from pyssp_sysml2.parameters.synthesis.interfaces import ensure_component_interface
 from pyssp_sysml2.artifacts.ssd import generate_ssd
 from pyssp_sysml2.model import load
 from tests.fixture_files import render_fixture
@@ -79,6 +82,29 @@ def test_out_direction_is_rejected(tmp_path) -> None:
         parameter_interface(architecture, architecture.get_part_def("Comp"))
 
 
+def test_conjugated_parameter_interface_is_rejected(tmp_path) -> None:
+    """SSD parameter synthesis refuses a conjugated parameter interface."""
+    _, architecture = _load(
+        tmp_path, _model(port="in port parameters : ~Params;")
+    )
+    part_def = architecture.get_part_def("Comp")
+
+    ssd_path = tmp_path / "SystemStructure.ssd"
+    with SSD(ssd_path, mode="w") as ssd:
+        top = ssd.new_system(COMPOSITION_NAME)
+        component = top.add_component("comp", source="resources/Comp.fmu")
+        component.add_connector(name="gain", kind="parameter", type_name="Real")
+
+    with SSD(ssd_path, mode="r") as ssd:
+        with pytest.raises(ValueError, match="conjugated definition '~Params'"):
+            ensure_component_interface(
+                architecture,
+                part_def,
+                ssd.system.elements[0],
+                source_file="architecture.sysml",
+            )
+
+
 def test_attribute_bag_is_rejected(tmp_path) -> None:
     """The retired attribute carrier fails with a migration hint."""
     _, architecture = _load(
@@ -105,8 +131,8 @@ def test_attribute_marker_is_rejected(tmp_path) -> None:
         validate_marker_definitions(architecture)
 
 
-def test_flat_connector_marker_is_rejected(tmp_path) -> None:
-    """A parameter interface cannot flatten to the port name."""
+def test_retired_flat_connector_attribute_is_rejected(tmp_path) -> None:
+    """Flattening is an export option; the model attribute was removed."""
     _, architecture = _load(
         tmp_path,
         _model(
@@ -117,8 +143,12 @@ def test_flat_connector_marker_is_rejected(tmp_path) -> None:
         ),
     )
 
-    with pytest.raises(ValueError, match="cannot declare"):
-        parameter_interface(architecture, architecture.get_part_def("Comp"))
+    with pytest.raises(ValueError, match="--flat-connector"):
+        validate_parameter_dialect(
+            architecture,
+            architecture.get_part_def("Comp"),
+            policy=SSP_POLICY,
+        )
 
 
 def test_parameter_port_cannot_be_connected(tmp_path) -> None:

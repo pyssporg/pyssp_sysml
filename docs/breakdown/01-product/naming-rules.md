@@ -15,7 +15,7 @@ status: current
   SSD and SSV artifacts, `pyfmi_sysml2` writes it into FMI artifacts, and the
   SysML exporter re-quotes it (`INFO-005`).
 - An SSD connector name is `port.attribute` for a grouped port and the port name
-  alone for a flat port. A flat port named `'consumerFeed.X[1]'` produces the
+  alone for a scalar port (one member named `value`) or a flattened export. A flat port named `'consumerFeed.X[1]'` produces the
   connector `consumerFeed.X[1]`, so an FMU variable that is not a SysML
   identifier can be one flat port.
 - A fixed port multiplicity expands to indexed connectors and connections:
@@ -30,8 +30,8 @@ status: current
   part definition may have at most one such port.
 - A `parameters` port on the composition root is rejected. Attach interfaces to
   component or nested-system usages (`INFO-002`).
-- `pyssp_` names are control attributes. Generators skip them as parameter
-  data. Do not use the prefix for parameters (`INFO-004`).
+- `pyssp_` names were removed in dialect 0.3.0; a remaining name is a
+  migration error. Model data uses typed containers (`INFO-004`).
 - SysML keywords are rejected as parameter names: `part`, `port`, `attribute`,
   `bind`, `typed`, `comment`. They would produce a file that cannot be parsed
   back.

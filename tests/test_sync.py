@@ -533,3 +533,81 @@ def test_sync_rewires_boundary_connection(tmp_path: Path) -> None:
     text = _architecture_text(output_dir)
     assert "connect src.sig to v;" in text
     assert "connect dst.sig to v;" not in text
+
+
+def test_sync_synthesized_part_keeps_member_directions(tmp_path: Path) -> None:
+    """Sync writes per-member direction when an SSD port mixes input and output."""
+    architecture_dir = _write_sync_architecture(tmp_path / "arch")
+    ssd_path = tmp_path / "SystemStructure.ssd"
+    generate_ssd(architecture_dir, ssd_path, COMPOSITION_NAME)
+
+    with SSD(ssd_path, mode="a") as ssd:
+        assert ssd.system is not None
+        ext = ssd.system.add_component("ext", source="resources/Mixed.fmu")
+        ext.add_connector(name="sig.p", kind="input", type_name="Real")
+        ext.add_connector(name="sig.m", kind="output", type_name="Real")
+        ext.add_connector(name="fallback.n", kind="input", type_name="Real")
+
+    output_dir = tmp_path / "synced"
+    sync_sysml_from_ssd(
+        architecture_path=architecture_dir,
+        ssd_path=ssd_path,
+        composition=COMPOSITION_NAME,
+        output_architecture_dir=output_dir,
+    )
+
+    inferred = (output_dir / "inferred_external_parts.sysml").read_text(
+        encoding="utf-8"
+    )
+    assert "in attribute p : Real;" in inferred
+    assert "out attribute m : Real;" in inferred
+    assert "in port sig : " in inferred
+    assert "in port fallback : " in inferred
+    assert "attribute value : Real;" in inferred
+
+
+CONJUGATED_ARCHITECTURE = """package ConjugatedSyncModel {
+  port def Feed {
+    out attribute p : Real;
+    in attribute m : Real;
+  }
+
+  part def Known {
+    out port feed : Feed;
+  }
+
+  part def ConjugatedSync {
+    part known : Known;
+  }
+}
+"""
+
+
+def test_sync_reuses_one_definition_for_a_conjugated_component(
+    tmp_path: Path,
+) -> None:
+    """A synthesized component with flipped kinds reuses ``Feed`` as ``~Feed``."""
+    architecture_dir = tmp_path / "arch"
+    write_model(architecture_dir / "model.sysml", CONJUGATED_ARCHITECTURE)
+
+    ssd_path = tmp_path / "SystemStructure.ssd"
+    with SSD(ssd_path, mode="w") as ssd:
+        top = ssd.new_system("ConjugatedSync")
+        ssd.rename("ConjugatedSync")
+        mirror = top.add_component("mirror", source="resources/Mirror.fmu")
+        mirror.add_connector(name="feed.p", kind="input", type_name="Real")
+        mirror.add_connector(name="feed.m", kind="output", type_name="Real")
+
+    output_dir = tmp_path / "synced"
+    sync_sysml_from_ssd(
+        architecture_path=architecture_dir,
+        ssd_path=ssd_path,
+        composition="ConjugatedSync",
+        output_architecture_dir=output_dir,
+    )
+
+    architecture = load(output_dir)
+    mirror_port = architecture.part_definitions["Mirror"].ports["feed"]
+    assert mirror_port.conjugated is True
+    assert architecture.resolve_port(mirror_port) is architecture.port_definitions["Feed"]
+    assert "~Feed" in _architecture_text(output_dir)

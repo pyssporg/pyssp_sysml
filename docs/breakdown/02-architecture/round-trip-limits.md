@@ -19,9 +19,13 @@ status: current
   SysML.
 - A childless SSD `System` can regenerate as a leaf component; no structural
   marker distinguishes the two (`INFO-002`).
-- Set inheritance and union are not implemented; see `IMP-001`.
-- Flat parameter attributes, `pyssp_implementation`, and `pyssp_parameter_set`
-  are retired (`INFO-024`, `INFO-004`).
+- Set inheritance and union resolve in the model and in SSD generation, but the
+  SSV writer and SysML synthesis stay declared-only, so inherited set members
+  are neither flattened nor preserved (`IMP-001`).
+- Flat parameter attributes and the `pyssp_*` vocabulary are retired; a
+  remaining name is a migration error (`INFO-024`, `INFO-004`).
+- Flattened connector naming is not model data, so `generate sysml` does not
+  record it; regenerate with `--flat-connector` to recover it (`INFO-004`).
 - `generate sysml` and `sync ssd` refuse to rewrite an architecture carrying
   variation points; SysML export does not represent them and would erase them.
 - Original port definition names are lost; the SSD stores only connector names

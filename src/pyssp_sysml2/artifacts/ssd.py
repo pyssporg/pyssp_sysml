@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
+from dataclasses import replace
 from pathlib import Path
 
 from pyssp_standard import (
@@ -13,12 +14,6 @@ from pyssp_standard import (
     System,
 )
 
-from pycps_sysml2.core.control import (
-    DEFAULT_START_ATTR,
-    DEFAULT_STOP_ATTR,
-    FLAT_CONNECTOR_ATTR,
-    is_control_attribute,
-)
 from pycps_sysml2.core.fmi_helpers import to_fmi_direction_definition
 from pycps_sysml2.metadata.fmu_metadata import (
     component_implementation,
@@ -28,15 +23,18 @@ from pycps_sysml2.metadata.fmu_metadata import (
 from pycps_sysml2.metadata.roles import (
     SSP_ROLES,
     is_analysis,
+    read_experiment,
     require_resolved_variation,
     validate_role_markers,
 )
 from pycps_sysml2.metadata.ssp_metadata import ssp_metadata
 from pycps_sysml2.model import (
     Architecture,
+    Attribute,
     PartDefinition,
     PortDefinition,
     PortUsage,
+    effective_members,
     load,
 )
 from pycps_sysml2.parameters.constraints import enforce_constraints
@@ -63,6 +61,27 @@ from pyssp_sysml2.artifacts.ssv import parameter_set_resource
 from pyssp_sysml2.core.paths import ensure_parent_dir
 
 
+def _effective_part(
+    architecture: Architecture, part_def: PartDefinition
+) -> PartDefinition:
+    """A detached view carrying every effective member of *part_def*.
+
+    The parameter dialect resolves the ``parameters`` port and its declarations
+    from a definition's own fields. Handing it this view keeps inherited
+    members visible without mutating the IR.
+    """
+    members = effective_members(architecture, part_def)
+    return replace(
+        part_def,
+        attributes=dict(members.attributes),
+        ports=dict(members.ports),
+        parts=dict(members.parts),
+        connections=dict(members.connections),
+        bindings=list(members.bindings),
+        constraints=list(members.constraints),
+    )
+
+
 def _endpoint_port_def(
     system: PartDefinition,
     architecture: Architecture,
@@ -75,7 +94,7 @@ def _endpoint_port_def(
     system boundary; the SSD connection omits the element for that end.
     """
     if part_name is None:
-        port_usage = system.ports.get(port_name)
+        port_usage = effective_members(architecture, system).ports.get(port_name)
         if port_usage is None:
             raise ValueError(
                 f"Unknown boundary port '{port_name}' in connection; declare "
@@ -84,31 +103,77 @@ def _endpoint_port_def(
         port_def = architecture.resolve_port(port_usage)
         if port_def is None:
             raise ValueError("Port definition not connected")
-        if is_parameter_interface(port_def):
+        if is_parameter_interface(architecture, port_def):
             raise ValueError(
                 f"Parameter port '{port_name}' cannot be connected; "
                 "apply a parameter set with 'bind'"
             )
         return port_def, port_usage
 
-    part_usage = system.parts.get(part_name)
+    part_usage = effective_members(architecture, system).parts.get(part_name)
     if part_usage is None:
         raise ValueError(f"Unknown part '{part_name}' in connection")
     part_def = architecture.resolve_part(part_usage)
     if part_def is None:
         raise ValueError(f"Unresolved part definition for {part_name}")
-    port_usage = part_def.ports.get(port_name)
+    port_usage = effective_members(architecture, part_def).ports.get(port_name)
     if port_usage is None:
         raise ValueError(f"Unknown port '{part_name}.{port_name}' in connection")
     port_def = architecture.resolve_port(port_usage)
     if port_def is None:
         raise ValueError("Port definition not connected")
-    if is_parameter_interface(port_def):
+    if is_parameter_interface(architecture, port_def):
         raise ValueError(
             f"Parameter port '{part_name}.{port_name}' cannot be connected; "
             "apply a parameter set with 'bind'"
         )
     return port_def, port_usage
+
+
+def _is_scalar_port(
+    architecture: Architecture, port_def: PortDefinition
+) -> bool:
+    """True for a port that names one FMU variable rather than a group.
+
+    The loader normalizes a connector without a dot to a port with one member
+    named ``value``; the same shape exports that member as the connector name,
+    so a scalar signal keeps its FMU variable name.
+    """
+    return tuple(effective_members(architecture, port_def).attributes) == ("value",)
+
+
+def _ports_compatible(
+    architecture: Architecture, source: PortDefinition, destination: PortDefinition
+) -> bool:
+    """True when two port definitions describe the same interface.
+
+    Direction is flow metadata, not type: a mirrored definition with the same
+    member names and types is a compatible endpoint, which is how a mixed
+    ``in``/``out`` port is reused on both sides of a connection.
+    """
+    if source is destination:
+        return True
+    source_members = effective_members(architecture, source).attributes
+    destination_members = effective_members(architecture, destination).attributes
+    if source_members.keys() != destination_members.keys():
+        return False
+    return all(
+        source_members[name].effective_type_name
+        == destination_members[name].effective_type_name
+        for name in source_members
+    )
+
+
+def _member_direction(attribute: Attribute, port_usage: PortUsage) -> str:
+    """Resolved SysML direction of one port member on this usage.
+
+    The definition's member direction wins over the usage and is flipped on a
+    conjugated (``~P``) usage; a member without its own direction falls back to
+    the usage. ``inout`` and undirected members fall back to ``in``, matching
+    the FMI input fallback.
+    """
+    direction = port_usage.effective_member_direction(attribute)
+    return "out" if direction == "out" else "in"
 
 
 def _port_indices(port_usage: PortUsage) -> tuple[int | None, ...]:
@@ -119,32 +184,56 @@ def _port_indices(port_usage: PortUsage) -> tuple[int | None, ...]:
     return tuple(range(1, count + 1))
 
 
-def flat_connector(port_def: PortDefinition) -> bool:
-    """True when ``port_def`` asks for flattened connectors.
-
-    The control attribute is a Boolean; an absent attribute or ``false`` means
-    per-member connectors, so the stored value must be read, never the presence
-    of the attribute.
-    """
-    attribute = port_def.attributes.get(FLAT_CONNECTOR_ATTR)
-    return attribute is not None and bool(attribute.value)
-
-
 def _multiplicity_text(port_usage: PortUsage) -> str:
     return f"[{port_usage.multiplicity}]" if port_usage.multiplicity else ""
 
 
+def _attribute_indices(
+    attribute: Attribute, port_usage: PortUsage
+) -> tuple[int | None, ...]:
+    """Connector indices for one port attribute; 1-based to match FMI arrays."""
+    if not attribute.multiplicity:
+        return (None,)
+    name = f"{port_usage.name}.{attribute.name}"
+    try:
+        count = fixed_count(attribute.multiplicity, name)
+    except ValueError as error:
+        raise ValueError(f"Port attribute '{name}': {error}") from None
+    return tuple(range(1, count + 1))
+
+
+def _attribute_text(attribute: Attribute) -> str:
+    return f"[{attribute.multiplicity}]" if attribute.multiplicity else ""
+
+
 def _connector_name(
     port_usage: PortUsage,
-    attribute_name: str,
+    attribute: Attribute,
     flat: bool,
     index: int | None,
+    attribute_index: int | None,
+    *,
+    scalar: bool,
 ) -> str:
     port = port_usage.name if index is None else f"{port_usage.name}[{index}]"
-    return port if flat else f"{port}.{attribute_name}"
+    if flat or scalar:
+        if attribute.multiplicity:
+            raise ValueError(
+                f"Flat connector naming cannot represent array attribute "
+                f"'{port_usage.name}.{attribute.name}"
+                f"{_attribute_text(attribute)}'; export without flat_connector"
+            )
+        return port
+    member = (
+        attribute.name
+        if attribute_index is None
+        else f"{attribute.name}[{attribute_index}]"
+    )
+    return f"{port}.{member}"
 
 
 def _check_boundary_direction(
+    architecture: Architecture,
     system: PartDefinition,
     part_name: str | None,
     port_name: str,
@@ -158,9 +247,24 @@ def _check_boundary_direction(
     """
     if part_name is not None:
         return
-    port_usage = system.ports[port_name]
+    port_usage = effective_members(architecture, system).ports[port_name]
+    port_def = architecture.resolve_port(port_usage)
+    if port_def is None:
+        raise ValueError("Port definition not connected")
+    side = "start" if expected_direction == "in" else "end"
+    members = effective_members(architecture, port_def).attributes
+    if members:
+        for attribute in members.values():
+            direction = _member_direction(attribute, port_usage)
+            if direction != expected_direction:
+                raise ValueError(
+                    f"Boundary port '{port_name}' of '{system.name}' member "
+                    f"'{attribute.name}' is declared as '{direction}' but is "
+                    f"used as the {side} of a connection; boundary ports are "
+                    "inputs at the start and outputs at the end"
+                )
+        return
     if port_usage.direction != expected_direction:
-        side = "start" if expected_direction == "in" else "end"
         raise ValueError(
             f"Boundary port '{port_name}' of '{system.name}' is declared as "
             f"'{port_usage.direction}' but is used as the {side} of a "
@@ -189,36 +293,46 @@ def _add_part_connectors(
     architecture: Architecture,
     parameter_model: bool,
     *,
+    flat: bool,
     base_index: int = 0,
 ) -> None:
     """Append port and parameter connectors for one component or system."""
-    for port_usage in part_def.ports.values():
+    members = effective_members(architecture, part_def)
+    for port_usage in members.ports.values():
         port_def = architecture.resolve_port(port_usage)
         if port_def is None:
             raise ValueError(
                 f"Unresolved port definition for "
                 f"{part_def.name}.{port_usage.name}"
             )
-        if is_parameter_interface(port_def):
+        if is_parameter_interface(architecture, port_def):
             # Emitted by the parameter branch below, flattened to member names.
             continue
-        flat = flat_connector(port_def)
+        scalar = _is_scalar_port(architecture, port_def)
+        port_attributes = effective_members(architecture, port_def).attributes
         for index in _port_indices(port_usage):
-            for attribute in port_def.attributes.values():
-                if is_control_attribute(attribute.name):
-                    continue
-                connector_name = _connector_name(
-                    port_usage, attribute.name, flat, index
-                )
-                element.add_connector(
-                    name=connector_name,
-                    kind=to_fmi_direction_definition(port_usage.direction),
-                    type_name=attribute.effective_type_name,
-                )
+            for attribute in port_attributes.values():
+                for attribute_index in _attribute_indices(attribute, port_usage):
+                    connector_name = _connector_name(
+                        port_usage,
+                        attribute,
+                        flat,
+                        index,
+                        attribute_index,
+                        scalar=scalar,
+                    )
+                    element.add_connector(
+                        name=connector_name,
+                        kind=to_fmi_direction_definition(
+                            _member_direction(attribute, port_usage)
+                        ),
+                        type_name=attribute.effective_type_name,
+                    )
 
-    has_interface = parameter_interface(architecture, part_def) is not None
+    parameter_part = _effective_part(architecture, part_def)
+    has_interface = parameter_interface(architecture, parameter_part) is not None
     if parameter_model and has_interface:
-        for attribute in parameter_declarations(architecture, part_def):
+        for attribute in parameter_declarations(architecture, parameter_part):
             for item in parameter_items(attribute, base_index=base_index):
                 element.add_connector(
                     name=item.name,
@@ -232,9 +346,11 @@ def _add_connections(
     part_def: PartDefinition,
     architecture: Architecture,
     type_check: bool,
+    *,
+    flat: bool,
 ) -> None:
     """Append this system level's connections to an SSD system."""
-    for conn in part_def.connections.values():
+    for conn in effective_members(architecture, part_def).connections.values():
         if conn.source_part is None and conn.destination_part is None:
             raise ValueError(
                 f"Connection '{conn.key}' links two boundary ports of "
@@ -246,18 +362,20 @@ def _add_connections(
         dst_port_def, dst_port_usage = _endpoint_port_def(
             part_def, architecture, conn.destination_part, conn.destination_port
         )
-        _check_boundary_direction(part_def, conn.source_part, conn.source_port, "in")
         _check_boundary_direction(
-            part_def, conn.destination_part, conn.destination_port, "out"
+            architecture, part_def, conn.source_part, conn.source_port, "in"
         )
-        if type_check and src_port_def is not dst_port_def:
+        _check_boundary_direction(
+            architecture, part_def, conn.destination_part, conn.destination_port, "out"
+        )
+        if type_check and not _ports_compatible(
+            architecture, src_port_def, dst_port_def
+        ):
             raise ValueError(
                 f"Src {conn.source_port} and dest port "
                 f"{conn.destination_port} must be same type"
             )
 
-        src_flat = flat_connector(src_port_def)
-        dst_flat = flat_connector(dst_port_def)
         src_indices = _port_indices(src_port_usage)
         dst_indices = _port_indices(dst_port_usage)
         if src_indices != dst_indices:
@@ -267,20 +385,54 @@ def _add_connections(
                 f"{_multiplicity_text(src_port_usage)} and "
                 f"{dst_port_usage.name}{_multiplicity_text(dst_port_usage)}"
             )
+        src_attributes = effective_members(architecture, src_port_def).attributes
+        dst_attributes = effective_members(architecture, dst_port_def).attributes
         for index in src_indices:
-            for attribute_name in src_port_def.attributes.keys():
-                if is_control_attribute(attribute_name):
-                    continue
-                target_system.add_connection(
-                    start_element=conn.source_part,
-                    start_connector=_connector_name(
-                        src_port_usage, attribute_name, src_flat, index
-                    ),
-                    end_element=conn.destination_part,
-                    end_connector=_connector_name(
-                        dst_port_usage, attribute_name, dst_flat, index
-                    ),
+            for src_attribute in src_attributes.values():
+                dst_attribute = dst_attributes.get(src_attribute.name)
+                if dst_attribute is None:
+                    # Different port types: keep naming by the source member.
+                    dst_attribute = src_attribute
+                    dst_attribute_indices = _attribute_indices(
+                        src_attribute, src_port_usage
+                    )
+                else:
+                    dst_attribute_indices = _attribute_indices(
+                        dst_attribute, dst_port_usage
+                    )
+                src_attribute_indices = _attribute_indices(
+                    src_attribute, src_port_usage
                 )
+                if src_attribute_indices != dst_attribute_indices:
+                    raise ValueError(
+                        f"Connection '{conn.key}' joins attributes with "
+                        f"different multiplicity: "
+                        f"{src_port_usage.name}.{src_attribute.name}"
+                        f"{_attribute_text(src_attribute)} and "
+                        f"{dst_port_usage.name}.{dst_attribute.name}"
+                        f"{_attribute_text(dst_attribute)}"
+                    )
+                for attribute_index in src_attribute_indices:
+                    target_system.add_connection(
+                        start_element=conn.source_part,
+                        start_connector=_connector_name(
+                            src_port_usage,
+                            src_attribute,
+                            flat,
+                            index,
+                            attribute_index,
+                            scalar=_is_scalar_port(architecture, src_port_def),
+                        ),
+                        end_element=conn.destination_part,
+                        end_connector=_connector_name(
+                            dst_port_usage,
+                            dst_attribute,
+                            flat,
+                            index,
+                            attribute_index,
+                            scalar=_is_scalar_port(architecture, dst_port_def),
+                        ),
+                    )
 
 
 def _write_elements(
@@ -290,30 +442,40 @@ def _write_elements(
     *,
     parameter_model: bool,
     type_check: bool,
+    flat: bool,
     base_index: int = 0,
 ) -> None:
     """Recursively write nested systems and leaf FMU components."""
-    for part_name, part_usage in part_def.parts.items():
+    members = effective_members(architecture, part_def)
+    for part_name, part_usage in members.parts.items():
         child = architecture.resolve_part(part_usage)
         if child is None:
             raise ValueError(
                 f"Unresolved part definition for {part_usage.name}"
             )
         metadata = fmu_metadata(architecture, child)
-        if child.parts:
+        if effective_members(architecture, child).parts:
             if metadata is not None:
                 raise ValueError(
                     f"{child.name} has both subparts and 'fmu_meta' metadata; "
                     "a nested system cannot also be an FMU component"
                 )
             nested = parent.add_subsystem(part_name)
-            _add_part_connectors(nested, child, architecture, parameter_model, base_index=base_index)
+            _add_part_connectors(
+                nested,
+                child,
+                architecture,
+                parameter_model,
+                flat=flat,
+                base_index=base_index,
+            )
             _write_elements(
                 nested,
                 child,
                 architecture,
                 parameter_model=parameter_model,
                 type_check=type_check,
+                flat=flat,
                 base_index=base_index,
             )
             continue
@@ -324,9 +486,16 @@ def _write_elements(
             component_type="application/x-fmu-sharedlibrary",
             implementation=component_implementation(metadata),
         )
-        _add_part_connectors(component, child, architecture, parameter_model, base_index=base_index)
+        _add_part_connectors(
+            component,
+            child,
+            architecture,
+            parameter_model,
+            flat=flat,
+            base_index=base_index,
+        )
 
-    _add_connections(parent, part_def, architecture, type_check)
+    _add_connections(parent, part_def, architecture, type_check, flat=flat)
 
 
 def build_ssd(
@@ -337,7 +506,16 @@ def build_ssd(
     parameter_set_prefix: str = "parameter_sets",
     *,
     base_index: int = 0,
+    flat_connector: bool = False,
 ) -> None:
+    """Write one SSD from ``system``.
+
+    ``flat_connector`` selects the connector naming style: ``False`` (the
+    default) emits ``port.member`` names, ``True`` emits one ``port`` name per
+    member. Flattening is an export option, never model data, so the same
+    architecture can be exported both ways. Flat naming has no slot for a
+    per-element index, so a fixed-length attribute array is rejected under it.
+    """
     validate_role_markers(architecture)
     if is_analysis(architecture, system):
         raise ValueError(
@@ -362,21 +540,28 @@ def build_ssd(
     parameter_model = has_parameter_dialect(architecture, system, policy=SSP_POLICY)
     specs = mapping_specs(architecture, system, policy=SSP_POLICY, base_index=base_index) if parameter_model else []
 
-    _add_part_connectors(top, system, architecture, parameter_model, base_index=base_index)
+    _add_part_connectors(
+        top,
+        system,
+        architecture,
+        parameter_model,
+        flat=flat_connector,
+        base_index=base_index,
+    )
     _write_elements(
         top,
         system,
         architecture,
         parameter_model=parameter_model,
         type_check=type_check,
+        flat=flat_connector,
         base_index=base_index,
     )
 
-    start = system.attributes.get(DEFAULT_START_ATTR)
-    stop = system.attributes.get(DEFAULT_STOP_ATTR)
+    experiment = read_experiment(architecture, system, required=False)
     ssd.set_default_experiment(
-        start_time=float(start.value) if start is not None else 0,
-        stop_time=float(stop.value) if stop is not None else 3600,
+        start_time=experiment.start_time if experiment is not None else 0,
+        stop_time=experiment.stop_time if experiment is not None else 3600,
     )
 
     if parameter_model:
@@ -394,12 +579,16 @@ def generate_ssd(
     *,
     includes: Sequence[Path | str] = (),
     base_index: int = 0,
+    flat_connector: bool = False,
 ) -> Path:
     """Write an SSD for one composition.
 
     ``base_index`` is the first array index emitted in parameter connector
     names, e.g. 0 -> ``waypointX_km[0]`` and 1 -> ``waypointX_km[1]``. Data
     ports keep their FMI-style 1-based indices regardless.
+
+    ``flat_connector`` names each connector for the port alone instead of
+    ``port.member``; it is an export option, not model data.
 
     ``includes`` names additional definition roots (files or directories)
     merged into the loaded architecture; pass
@@ -426,5 +615,6 @@ def generate_ssd(
             type_check,
             parameter_set_prefix=parameter_set_prefix,
             base_index=base_index,
+            flat_connector=flat_connector,
         )
     return output_path

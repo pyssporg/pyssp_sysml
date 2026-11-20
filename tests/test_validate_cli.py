@@ -16,9 +16,6 @@ from tests.test_generate_ssp import (
 )
 from tests.testhelpers import COMPOSITION_NAME, write_model
 
-FLAT_FALSE = "attribute pyssp_flat_connector : Boolean = false;"
-
-
 def _validate(
     architecture_dir: Path,
     capsys: pytest.CaptureFixture,
@@ -88,43 +85,6 @@ def test_validate_reports_a_port_member_absent_from_the_fmu(
     assert "FAIL fmu-interfaces:" in output
     assert "missing variable 'output.y'" in output
     assert "1 check(s) failed" in output
-
-
-def test_validate_reads_flat_connector_by_value(
-    tmp_path: Path, capsys: pytest.CaptureFixture
-) -> None:
-    """``pyssp_flat_connector = false`` keeps per-member connector names."""
-    architecture_dir = _write_architecture(
-        tmp_path / "arch",
-        source=str(tmp_path / "Comp.fmu"),
-        parameterized=False,
-        flat_connector=FLAT_FALSE,
-    )
-    _build_fmu(tmp_path / "Comp.fmu")
-
-    code, output = _validate(architecture_dir, capsys)
-
-    assert code == 0
-    assert "PASS fmu-interfaces" in output
-
-
-def test_validate_flat_connector_false_fails_only_for_missing_names(
-    tmp_path: Path, capsys: pytest.CaptureFixture
-) -> None:
-    """The value false asks for ``output.y``, never the flattened ``output``."""
-    architecture_dir = _write_architecture(
-        tmp_path / "arch",
-        source=str(tmp_path / "Comp.fmu"),
-        parameterized=False,
-        flat_connector=FLAT_FALSE,
-    )
-    _write_mismatched_fmu(tmp_path / "Comp.fmu")
-
-    code, output = _validate(architecture_dir, capsys)
-
-    assert code == 1
-    assert "missing variable 'output.y'" in output
-    assert "missing variable 'output'" not in output
 
 
 def test_validate_reports_an_implementation_mismatch(

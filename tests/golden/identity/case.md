@@ -52,5 +52,6 @@ case only covers per-member binds, and every document would still validate.
 
 | Date | Change | Reason |
 | --- | --- | --- |
+| 2026-11-19 | Scalar connectors drop the `.value` suffix | A port with one `value` member exports under the port name |
 | 2026-10-28 | Case record added | The goldens existed with no per-case provenance; bytes unchanged |
 | 2026-11-05 | FMI goldens removed | FMI model descriptions moved to `pyfmi_sysml2`; SSD/SSV/SSM bytes unchanged |

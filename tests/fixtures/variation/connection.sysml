@@ -1,5 +1,6 @@
 package ConnectionVariation {
   part def SspModel;
+  part def FmuModel;
   part def Analysis;
 
   port def ParameterInterface;
@@ -15,7 +16,6 @@ package ConnectionVariation {
   }
 
   port def RealSignal {
-    attribute pyssp_flat_connector : Boolean = true;
     attribute value : Real;
   }
 
@@ -57,13 +57,13 @@ package ConnectionVariation {
     attribute implementation = "CoSimulation";
   }
 
-  part def Step {
+  part def Step :> FmuModel {
     attribute fmu_meta : StepFmu;
     in port parameters : StepParameters;
     out port y : RealSignal;
   }
 
-  part def Gain {
+  part def Gain :> FmuModel {
     attribute fmu_meta : GainFmu;
     in port u : RealSignal;
     out port y : RealSignal;
@@ -97,10 +97,14 @@ package ConnectionVariation {
     }
   }
 
+  attribute def SystemDefaults :> DefaultExperiment {
+    attribute startTime = 0.0;
+    attribute stopTime = 1.0;
+  }
+
   part def System :> SspModel {
     out port y : RealSignal;
-    attribute pyssp_default_start_time : Real = 0.0;
-    attribute pyssp_default_stop_time : Real = 1.0;
+    attribute defaults : SystemDefaults;
     part source : Step;
     part path : PathChoice;
 

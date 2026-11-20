@@ -35,3 +35,5 @@ Practical ordering:
 
 `generate sysml` and `sync ssd` need the SSV/SSM files referenced by the SSD.
 Keep the parameter directory next to the SSD or preserve relative paths.
+`generate sysml` marks a synthesized component that carries FMU metadata with
+`:> FmuModel` and declares the marker locally.

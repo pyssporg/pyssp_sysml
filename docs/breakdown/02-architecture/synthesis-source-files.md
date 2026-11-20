@@ -35,8 +35,11 @@ What lives in SysML and what is derived:
   definition; derived by `generate ssd` (`INFO-037`).
 - **Implementation string**: `fmu_meta.implementation`; derived by
   `generate ssd`.
+- **FMU role marker**: a synthesized component that receives `fmu_meta`
+  specializes `FmuModel`; the marker is declared in the same file.
 - **Built FMU location**: `fmu_meta.source`; read by `generate ssp`.
-- **Default experiment**: control attributes; derived by `generate ssd`
+- **Default experiment**: an `attribute defaults : <X>DefaultExperiment`
+  container; read by `generate ssd` and synthesized by `generate sysml`
   (`INFO-004`).
 - **FMU model name and GUID**: derived by `pyfmi_sysml2` (`INFO-031`).
 

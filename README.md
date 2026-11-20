@@ -115,6 +115,10 @@ pyssp generate ssd \
   --parameter-set-prefix parameter_sets
 ```
 
+Port connectors are named `port.member` by default. Pass `--flat-connector`
+to emit one scalar connector per port instead (`signal` rather than
+`signal.value`); it is an export option, not model data.
+
 ### SSV
 
 Parameters live in SysML `ParameterSet` definitions, so `generate ssv` writes one
@@ -461,8 +465,7 @@ Not supported (command will fail with a validation error):
 - Flat parameter attributes. The legacy flat-attribute dialect was retired;
   parameters must be declared through a parameter interface and applied with
   SysML-defined sets.
-- The retired `pyssp_implementation` and `pyssp_parameter_set` control
-  attributes.
+- The removed `pyssp_*` attribute vocabulary; the error names the replacement.
 
 Notes for `generate sysml`:
 
@@ -470,25 +473,26 @@ Notes for `generate sysml`:
 - Part names are derived from SSD component `source` (FMU stem) when available, otherwise from component names.
 - Port definitions are inferred from SSD connector attribute signatures.
 - Nested `ssd:System` elements become nested part definitions and part usages.
+- A component with `Component/@implementation` becomes a part definition marked `:> FmuModel`; the generated file declares `part def FmuModel;` locally.
 - Parameter connectors become interface members; `ParameterBinding` entries become set definitions, composition set usages, and `bind` statements. Nested systems use hierarchical targets such as `outer.inner.k`.
 
 ## 3.5) Round-trip fidelity
 
 `pyssp generate sysml` records SSD metadata that has no first-class SysML
-equivalent as typed FMU metadata or `pyssp_*` control attributes. They are
-preserved by `pyssp generate ssd` and skipped by the SSV generator. FMI
-generation moved to `pyfmi_sysml2` in 0.4.0, so no FMI generator lives here:
+equivalent as typed attribute containers. They are preserved by
+`pyssp generate ssd` and skipped by the SSV generator. FMI generation moved to
+`pyfmi_sysml2` in 0.4.0, so no FMI generator lives here:
 
 | SSD metadata | SysML representation |
 | --- | --- |
-| `Component/@implementation` | `attribute fmu_meta : <Part>FmuMetadata` with `implementation` |
+| `Component/@implementation` | `part def <Part> :> FmuModel` with `attribute fmu_meta : <Part>FmuMetadata` carrying `implementation` |
 | Parameter connectors / bindings | `port def` interfaces, sets, `parameters` ports, and `bind` |
-| `DefaultExperiment` | `attribute pyssp_default_start_time` / `pyssp_default_stop_time` |
-| Flat connector name | `attribute pyssp_flat_connector : Boolean` on the port def |
+| `DefaultExperiment` | `attribute defaults : <X>DefaultExperiment` with `startTime` / `stopTime` |
 
-`pyssp_flat_connector = false` means **do not flatten**. This is a 0.4.0
-behaviour change: earlier versions read the attribute for presence only, so
-`false` still flattened connectors.
+Flattening is an export option, not model data: `pyssp generate ssd
+--flat-connector` emits `signal` instead of `signal.value`. The same document
+exports both ways. The old `pyssp_*` attribute vocabulary was removed by
+dialect 0.3.0; a remaining name is a migration error naming its replacement.
 
 `Component/@source` is derived from the part definition name
 (`resources/<PartDef>.fmu`) when the leaf declares `fmu_meta.source`; with no

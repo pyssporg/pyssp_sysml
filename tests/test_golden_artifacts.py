@@ -34,6 +34,7 @@ RESOURCES = Path(__file__).resolve().parent / "resources"
 #: Case directory -> composition to generate.
 CASES = {
     "identity": "IdentityComposition",
+    "inheritance": "InheritanceComposition",
     "mapping": "MappingComposition",
 }
 

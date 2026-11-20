@@ -17,15 +17,15 @@ from pathlib import Path
 
 from pyssp_standard import FMU
 
-from pycps_sysml2.core.control import is_control_attribute
 from pycps_sysml2.core.fmi_helpers import fmu_filename
 from pycps_sysml2.metadata.fmu_metadata import fmu_metadata
 from pycps_sysml2.metadata.roles import is_analysis
-from pycps_sysml2.model import Architecture, PartDefinition
-from pycps_sysml2.parameters.dialect.composition import (
-    component_definitions,
-    has_parameter_dialect,
+from pycps_sysml2.model import (
+    Architecture,
+    PartDefinition,
+    effective_members,
 )
+from pycps_sysml2.parameters.dialect.composition import has_parameter_dialect
 from pycps_sysml2.parameters.dialect.declarations import (
     parameter_declarations,
     parameter_interface,
@@ -35,9 +35,11 @@ from pycps_sysml2.parameters.dialect.markers import is_parameter_interface
 from pycps_sysml2.parameters.policy import SSP_POLICY
 
 from pyssp_sysml2.artifacts.ssd import (
+    _attribute_indices,
     _connector_name,
+    _effective_part,
+    _is_scalar_port,
     _port_indices,
-    flat_connector,
 )
 
 
@@ -55,6 +57,35 @@ def _resolve_fmu_source(source: str, fmu_root: Path | None) -> Path:
     return path.resolve()
 
 
+def _component_definitions(
+    architecture: Architecture, system: PartDefinition
+) -> list[PartDefinition]:
+    """Unique definitions reachable from ``system``, following effective parts."""
+    definitions: list[PartDefinition] = []
+    seen: set[str] = set()
+
+    def walk(part_def: PartDefinition, ancestors: frozenset[str]) -> None:
+        for usage in effective_members(architecture, part_def).parts.values():
+            child = architecture.resolve_part(usage)
+            if child is None:
+                raise ValueError(
+                    f"Unresolved part definition for {usage.name}"
+                )
+            key = architecture.stored_key(child)
+            if key in ancestors:
+                raise ValueError(
+                    f"Recursive part hierarchy at '{usage.name}' ({key})"
+                )
+            if key in seen:
+                continue
+            seen.add(key)
+            definitions.append(child)
+            walk(child, ancestors | {key})
+
+    walk(system, frozenset({architecture.stored_key(system)}))
+    return definitions
+
+
 def _collect_fmu_resources(
     architecture: Architecture,
     system: PartDefinition,
@@ -63,8 +94,8 @@ def _collect_fmu_resources(
     allow_missing: bool = False,
 ) -> list[_FmuResource]:
     resources: list[_FmuResource] = []
-    for part_def in component_definitions(architecture, system):
-        if part_def.parts:
+    for part_def in _component_definitions(architecture, system):
+        if effective_members(architecture, part_def).parts:
             continue
 
         metadata = fmu_metadata(architecture, part_def)
@@ -110,24 +141,37 @@ def _expected_connector_names(
     *,
     parameter_model: bool,
     base_index: int,
+    flat: bool,
 ) -> list[str]:
     """The connector names the SSD will declare for one leaf component."""
     expected: list[str] = []
-    for port_usage in part_def.ports.values():
+    members = effective_members(architecture, part_def)
+    for port_usage in members.ports.values():
         port_def = architecture.resolve_port(port_usage)
-        if port_def is None or is_parameter_interface(port_def):
+        if port_def is None or is_parameter_interface(architecture, port_def):
             continue
-        flat = flat_connector(port_def)
+        scalar = _is_scalar_port(architecture, port_def)
+        port_attributes = effective_members(architecture, port_def).attributes
         for index in _port_indices(port_usage):
-            for attribute in port_def.attributes.values():
-                if is_control_attribute(attribute.name):
-                    continue
-                expected.append(
-                    _connector_name(port_usage, attribute.name, flat, index)
-                )
+            for attribute in port_attributes.values():
+                for attribute_index in _attribute_indices(attribute, port_usage):
+                    expected.append(
+                        _connector_name(
+                            port_usage,
+                            attribute,
+                            flat,
+                            index,
+                            attribute_index,
+                            scalar=scalar,
+                        )
+                    )
 
-    if parameter_model and parameter_interface(architecture, part_def) is not None:
-        for attribute in parameter_declarations(architecture, part_def):
+    parameter_part = _effective_part(architecture, part_def)
+    if (
+        parameter_model
+        and parameter_interface(architecture, parameter_part) is not None
+    ):
+        for attribute in parameter_declarations(architecture, parameter_part):
             for item in parameter_items(attribute, base_index):
                 expected.append(item.name)
     return expected
@@ -139,6 +183,7 @@ def check_fmu_interfaces(
     fmu_root: Path | None = None,
     *,
     base_index: int = 0,
+    flat_connector: bool = False,
 ) -> tuple[str, ...]:
     """Report every FMU interface problem below ``composition``.
 
@@ -151,6 +196,9 @@ def check_fmu_interfaces(
     same value the generator will use (``--base-index``): parameter lists are
     0-based by default, while OMC-built Modelica FMUs declare them 1-based.
     Data ports keep their FMI-style 1-based indices regardless.
+
+    ``flat_connector`` must match the SSD generator's option: ``True`` expects
+    one scalar connector per port member instead of ``port.member`` names.
 
     Raises:
         ValueError: ``composition`` does not exist or is an Analysis.
@@ -207,6 +255,7 @@ def check_fmu_interfaces(
             part_def,
             parameter_model=parameter_model,
             base_index=base_index,
+            flat=flat_connector,
         )
         for name in sorted(set(expected) - names):
             problems.append(
