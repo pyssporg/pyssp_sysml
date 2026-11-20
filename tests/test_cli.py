@@ -10,7 +10,7 @@ from pycps_sysml2 import core_definitions
 from pyssp_sysml2 import cli
 from pyssp_sysml2.cli import main
 from pyssp_sysml2.artifacts.ssd import generate_ssd
-from tests.fixture_files import fixture_path, render_fixture
+from tests.fixture_files import fixture_text, render_fixture
 from tests.test_generate_ssd import _ssd_summary
 from tests.testhelpers import COMPOSITION_NAME, write_bootstrap_ssd, write_model
 
@@ -295,7 +295,15 @@ def test_pyssp_generate_ssd_cli_accepts_two_architecture_flags(
     tmp_path: Path,
 ) -> None:
     """A repeated --architecture adds an included definition root."""
-    architecture = fixture_path("core-definitions/marker-user.sysml")
+    architecture = tmp_path / "arch"
+    write_model(
+        architecture / "marker-user.sysml",
+        fixture_text("core-definitions/marker-user.sysml"),
+    )
+    write_model(
+        architecture / "imports.sysml",
+        "package MarkerUser { private import CommonVocab::*; }",
+    )
     include_root = tmp_path / "common"
     write_model(
         include_root / "common.sysml",

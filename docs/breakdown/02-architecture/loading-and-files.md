@@ -45,8 +45,8 @@ SysML v2 syntax constraints:
   `bind autopilot.parameters.waypointCount = nominal.n_waypoints;` and
   `connect src.outSig to dst.inSig;`.
 - Primary files share one package. Included roots may declare any package,
-  because they supply vocabulary; imports across packages are not part of the
-  repository workflow.
+  because they supply vocabulary. A model references a definition in another
+  package through an explicit import, such as `private import PysspCore::*;`.
 
 The loaded `Architecture` is `pycps_sysml2`'s IR; this package consumes it
 (`INFO-031`, `INFO-038`).

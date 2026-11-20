@@ -1,4 +1,7 @@
 package MarkerUser {
+  private import ScalarValues::*;
+  private import PysspCore::*;
+
   part def MarkerSystem :> SspModel {
     part src : Source;
     part dst : Sink;
