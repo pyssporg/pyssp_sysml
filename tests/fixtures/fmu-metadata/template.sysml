@@ -1,9 +1,11 @@
 package Example {
+      part def FmuModel;
+
       $marker
 
       $concrete
 
-      part def Comp {
+      part def Comp :> FmuModel {
         $part_body
       }
 

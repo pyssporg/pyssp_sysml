@@ -25,6 +25,8 @@ Records live in the cold-storage archive; extract one with `pb archive read <ID>
   SSP 2.0's DefaultExperiment has no tolerance attribute, so the SSD writer emits only startTime and stopTime.
 - **AD-008** — implementation is closed and the SSD keeps only the SSP experiment fields · accepted · 2026-11-19 · `AD-008`
   pyssp_sysml2 validates implementation against the four ssd:Component values and projects only startTime and stopTime into the .ssd.
+- **AD-009** — Generated FMU components specialize FmuModel · accepted · 2026-11-20 · `AD-009`
+  A synthesized component that receives fmu_meta is marked ':> FmuModel', and the generated file declares the marker locally.
 
 ### Implementation
 

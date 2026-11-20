@@ -1,5 +1,6 @@
 package ConnectionVariation {
   part def SspModel;
+  part def FmuModel;
   part def Analysis;
 
   port def ParameterInterface;
@@ -56,13 +57,13 @@ package ConnectionVariation {
     attribute implementation = "CoSimulation";
   }
 
-  part def Step {
+  part def Step :> FmuModel {
     attribute fmu_meta : StepFmu;
     in port parameters : StepParameters;
     out port y : RealSignal;
   }
 
-  part def Gain {
+  part def Gain :> FmuModel {
     attribute fmu_meta : GainFmu;
     in port u : RealSignal;
     out port y : RealSignal;

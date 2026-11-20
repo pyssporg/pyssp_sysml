@@ -29,6 +29,11 @@ part def AutopilotModule :> FmuModel {
 }
 ```
 
+`generate sysml` and `sync ssd` mark a synthesized component that receives
+`fmu_meta` with `:> FmuModel` and declare the local marker, so the recovered
+text parses without the core include. A component without metadata, such as a
+nested system, stays unmarked.
+
 A `:> FmuModel` part that authors no metadata inherits the unfilled slot, which
 means "no FMU metadata": `fmu_metadata` returns `None` and
 `require_fmu_metadata` reports "no FMU metadata". Declaring

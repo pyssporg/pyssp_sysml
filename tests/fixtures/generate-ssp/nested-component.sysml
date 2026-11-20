@@ -1,4 +1,6 @@
 package Example {
+          part def FmuModel;
+
           attribute def FmuMetadata {
             attribute source : String;
             attribute implementation : String;
@@ -13,7 +15,7 @@ package Example {
             attribute y : Real;
           }
 
-          part def Leaf {
+          part def Leaf :> FmuModel {
             attribute fmu_meta : LeafFmu;
             out port output : Signal;
           }

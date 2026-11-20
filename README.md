@@ -473,6 +473,7 @@ Notes for `generate sysml`:
 - Part names are derived from SSD component `source` (FMU stem) when available, otherwise from component names.
 - Port definitions are inferred from SSD connector attribute signatures.
 - Nested `ssd:System` elements become nested part definitions and part usages.
+- A component with `Component/@implementation` becomes a part definition marked `:> FmuModel`; the generated file declares `part def FmuModel;` locally.
 - Parameter connectors become interface members; `ParameterBinding` entries become set definitions, composition set usages, and `bind` statements. Nested systems use hierarchical targets such as `outer.inner.k`.
 
 ## 3.5) Round-trip fidelity
@@ -484,7 +485,7 @@ equivalent as typed attribute containers. They are preserved by
 
 | SSD metadata | SysML representation |
 | --- | --- |
-| `Component/@implementation` | `attribute fmu_meta : <Part>FmuMetadata` with `implementation` |
+| `Component/@implementation` | `part def <Part> :> FmuModel` with `attribute fmu_meta : <Part>FmuMetadata` carrying `implementation` |
 | Parameter connectors / bindings | `port def` interfaces, sets, `parameters` ports, and `bind` |
 | `DefaultExperiment` | `attribute defaults : <X>DefaultExperiment` with `startTime` / `stopTime` |
 

@@ -34,6 +34,8 @@ Synthesized SysML definitions:
   `parameters`; numeric suffix on collision.
 - **Inferred component or system definitions**: FMU source stem or SSD element
   name, with `_2` suffix on collision.
+- **FMU role marker**: an inferred component that receives `fmu_meta` gets
+  `:> FmuModel`, and the marker definition is written locally.
 - **Inferred port definitions**: `Port_1`, `Port_2`, and so on (`INFO-036`).
 
 Collision behavior lives in `parameters/synthesis/` (`_unique_name` in

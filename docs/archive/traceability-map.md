@@ -15,6 +15,7 @@ the leaf is the source of truth; the record is how the state got there.
 - **AD-006** — State: `02-architecture/model-structure.md` (Model structure) · Artifacts: `src/pyssp_sysml2/artifacts/ssd.py`, `src/pyssp_sysml2/artifacts/preflight.py`
 - **AD-007** — State: `03-implementation/ssd-artifact.md` (SSD artifact) · Artifacts: `src/pyssp_sysml2/artifacts/ssd.py`
 - **AD-008** — State: `02-architecture/fmu-metadata.md` (FMU metadata) · Artifacts: `src/pyssp_sysml2/artifacts/ssd.py`
+- **AD-009** — State: `02-architecture/fmu-metadata.md` (FMU metadata) · Artifacts: `src/pyssp_sysml2/sysml/generate.py`
 
 ### Implementation
 

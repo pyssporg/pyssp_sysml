@@ -2,6 +2,8 @@ package Validate {
   port def ParameterInterface;
   attribute def ParameterSet;
 
+  part def FmuModel;
+
   port def CompParameters :> ParameterInterface {
     attribute waypointX_km : Real[2];
   }
@@ -20,7 +22,7 @@ package Validate {
     attribute implementation = "CoSimulation";
   }
 
-  part def Comp {
+  part def Comp :> FmuModel {
     attribute fmu_meta : CompFmu;
     in port parameters : CompParameters;
   }

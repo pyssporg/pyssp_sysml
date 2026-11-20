@@ -21,8 +21,8 @@ status: current
 - Nested system structure: nested SSD `System` and nested part definition.
 - Connections per system level, including bare-name boundary ends
   (`INFO-035`).
-- FMU metadata `implementation` and the default-experiment container
-  (`INFO-037`, `INFO-004`).
+- FMU metadata `implementation`, the `FmuModel` marker, and the
+  default-experiment container (`INFO-037`, `INFO-004`).
 - Unrelated definitions and file layout when syncing; `generate sysml` starts
   fresh.
 

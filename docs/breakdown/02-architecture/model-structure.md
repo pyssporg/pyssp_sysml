@@ -24,8 +24,10 @@ The definition name determines `resources/<Definition>.fmu` when the leaf
 declares `fmu_meta.source`. Dots in a definition name become underscores in the
 FMU filename.
 
-A nested system cannot also be an FMU. FMU metadata is meaningful only on a
-leaf; a part with both subparts and `fmu_meta` is rejected (`INFO-037`).
+A synthesized component that carries `fmu_meta` also specializes `FmuModel`;
+a component without metadata stays unmarked. A nested system cannot also be an
+FMU. FMU metadata is meaningful only on a leaf; a part with both subparts and
+`fmu_meta` is rejected (`INFO-037`).
 
 A `part def` with no effective subparts is a leaf component even if the SSD
 originally had a `System` element with no children. No structural marker

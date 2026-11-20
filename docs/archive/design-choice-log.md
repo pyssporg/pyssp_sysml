@@ -7,6 +7,7 @@ stream.
 
 | Date | ID | Decision | Layers | Status | Record |
 |---|---|---|---|---|---|
+| 2026-11-20 | AD-009 | Generated FMU components specialize FmuModel | architecture, implementation | accepted | `AD-009` |
 | 2026-11-19 | AD-008 | implementation is closed and the SSD keeps only the SSP experiment fields | architecture, implementation | accepted | `AD-008` |
 | 2026-11-19 | AD-007 | SSD drops the experiment tolerance | architecture, implementation | accepted | `AD-007` |
 | 2026-11-19 | AD-006 | SSD generation reads effective members | architecture, implementation | accepted | `AD-006` |

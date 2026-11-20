@@ -1,5 +1,6 @@
 package DefinitionVariationFmu {
   part def SspModel;
+  part def FmuModel;
   port def RealSignal {
     attribute value : Real;
   }
@@ -19,12 +20,12 @@ package DefinitionVariationFmu {
     attribute implementation = "CoSimulation";
   }
 
-  part def Step {
+  part def Step :> FmuModel {
     attribute fmu_meta : StepFmu;
     out port y : RealSignal;
   }
 
-  part def Sine {
+  part def Sine :> FmuModel {
     attribute fmu_meta : SineFmu;
     out port y : RealSignal;
   }

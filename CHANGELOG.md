@@ -17,6 +17,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   SSD connector names with its FMU's `variable_names`, taking the same
   `base_index` as the generator.
 
+### Changed
+
+- `generate sysml` and `sync ssd` mark a synthesized component that receives
+  `fmu_meta` as `:> FmuModel` and declare the marker locally; components
+  without metadata stay unmarked.
+
 ## [0.5.0] - 2026-11-09
 
 ### Added

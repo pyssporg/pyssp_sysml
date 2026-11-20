@@ -1,6 +1,8 @@
 package Example {
           $parameter_defs
 
+          part def FmuModel;
+
           attribute def FmuMetadata {
             attribute source : String;
             attribute implementation : String;
@@ -14,7 +16,7 @@ package Example {
             attribute y : Real;
           }
 
-          part def Comp {
+          part def Comp :> FmuModel {
             attribute fmu_meta : CompFmu;
             $parameter_port
             out port output : Signal;

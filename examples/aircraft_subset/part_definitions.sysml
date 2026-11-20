@@ -2,6 +2,8 @@ package Aircraft {
   port def ParameterInterface;
   attribute def ParameterSet;
 
+  part def FmuModel;
+
   attribute def FmuMetadata {
     attribute source : String;
     attribute implementation : String;
@@ -24,7 +26,7 @@ package Aircraft {
     attribute implementation = "CoSimulation";
   }
 
-  part def AutopilotModule {
+  part def AutopilotModule :> FmuModel {
     doc /* F-16 autopilot, takes in sensor data and translates it into a equivalent hotas command. */
     attribute fmu_meta : AutopilotFmu;
 
