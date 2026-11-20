@@ -2,9 +2,9 @@
 id: IMP-017
 type: imp
 title: Re-pin pycps-sysml2 to the 0.3.0 release
-summary: v0.6.0 adapts to dialect 0.3.0, but pyproject still pins the v0.2.0 release wheel; the pin moves when 0.3.0 is published.
-date: 2026-11-19
-status: selected
+summary: The v0.3.0 wheel is published; pyproject now points at it instead of v0.2.0.
+date: 2026-11-20
+status: implemented
 ---
 
 # Re-pin pycps-sysml2 to the 0.3.0 release
@@ -14,12 +14,11 @@ experiment containers replace the `pyssp_*` control attributes, the control
 metadata plumbing is gone, and flattening moved to the `--flat-connector` export
 option.
 
-`pyproject.toml` still pins the v0.2.0 release wheel URL. Development uses the
-editable sibling checkout, so the workspace runs the new dialect, but a clean
-install resolves the old wheel and the adapted imports fail.
+While `pyproject.toml` pinned the v0.2.0 wheel, a clean install resolved the old
+dialect and the adapted imports failed.
 
-**Candidate.**
-
-- Publish `pycps_sysml2` 0.3.0, then point the dependency at the v0.3.0 wheel.
-- Do not edit the pin as part of the adaptation; the release chore owns it.
-- Verify with a no-deps editable install of the published wheel and this suite.
+**Done.** The dependency points at
+`pycps_sysml2-0.3.0-py3-none-any.whl` from the v0.3.0 release, and
+`05-operation/local-setup.md` names 0.3.0. The wheel downloads from the pinned
+URL, and the suite (`-m "not slow"`) and `ruff check src tests` pass against the
+adapted code.

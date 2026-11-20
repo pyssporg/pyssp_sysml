@@ -31,7 +31,7 @@ pip install -e .
 
 `pyproject.toml` declares two direct-URL wheels:
 
-- `pycps-sysml2` 0.1.0, which pins `sysmlpy==0.96.4` itself;
+- `pycps-sysml2` 0.3.0, which pins `sysmlpy==0.96.4` itself;
 - `experimental-pyssp-standard` 0.9.2.dev0.
 
 `sysmlpy` is no longer a direct dependency: this package never imports the
