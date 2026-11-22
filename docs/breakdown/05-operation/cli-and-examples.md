@@ -2,7 +2,7 @@
 id: INFO-021
 type: info
 title: CLI usage
-summary: The pyssp entry point exposes generate and sync subcommands; generate fmi was removed and names pyfmi_sysml2 in its error.
+summary: The pyssp entry point exposes generate and sync subcommands; generate fmi was removed and names pyfmi_interfaces in its error.
 date: 2026-11-05
 status: current
 ---
@@ -64,11 +64,11 @@ Any failure ends with `N check(s) failed` and exits 1; a clean model exits 0.
 The Python surface is `pyssp_sysml2.check_fmu_interfaces(architecture,
 composition, fmu_root=None, *, base_index=0)`.
 
-`generate fmi` is gone. It prints an error naming `pyfmi_sysml2` and exits 1:
+`generate fmi` is gone. It prints an error naming `pyfmi_interfaces` and exits 1:
 
 ```text
 `generate fmi` was removed in pyssp_sysml2 0.4.0: FMI model descriptions
-now come from pyfmi_sysml2 (install pyfmi-sysml2, then run
+now come from pyfmi_interfaces (install pyfmi-interfaces, then run
 `pyfmi model-description`).
 ```
 

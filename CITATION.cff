@@ -4,7 +4,7 @@ title: "pyssp_sysml2"
 abstract: >-
   Generate SSD, SSV, SSM, analysis, SSP, and SysML artifacts from a SysML v2
   architecture or SSD. The SysML dialect comes from pycps_sysml2; FMI
-  artifacts come from pyfmi_sysml2.
+  artifacts come from pyfmi_interfaces.
 authors:
   - name: "Erik Rosenlund"
     orcid: "https://orcid.org/0009-0000-4238-3271"

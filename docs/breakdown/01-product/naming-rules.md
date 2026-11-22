@@ -12,7 +12,7 @@ status: current
 - A declared name is either a simple SysML identifier or a single-quoted name.
   A quoted name may contain dots, brackets, spaces, and leading digits. The
   model stores the name without its quotes; generators write it verbatim into
-  SSD and SSV artifacts, `pyfmi_sysml2` writes it into FMI artifacts, and the
+  SSD and SSV artifacts, `pyfmi_interfaces` writes it into FMI artifacts, and the
   SysML exporter re-quotes it (`INFO-005`).
 - An SSD connector name is `port.attribute` for a grouped port and the port name
   alone for a scalar port (one member named `value`) or a flattened export. A flat port named `'consumerFeed.X[1]'` produces the

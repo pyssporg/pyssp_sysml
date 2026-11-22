@@ -23,7 +23,7 @@ Artifact file names:
 - **SSD**: whatever path the user passes, conventionally
   `SystemStructure.ssd`.
 - **FMI**: `<PartDefinitionName>/modelDescription.xml`, emitted by
-  `pyfmi_sysml2` (`INFO-031`).
+  `pyfmi_interfaces` (`INFO-031`).
 
 Synthesized SysML definitions:
 

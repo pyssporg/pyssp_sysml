@@ -15,4 +15,4 @@ status: current
   documented simulation-modeling subset, not all of SysML v2 (`INFO-031`).
 - A full SSP authoring environment; SSP editing belongs to `pyssp_standard`.
 - FMI generation: model descriptions, headers, connectors, and the FMU zip are
-  `pyfmi_sysml2`'s (`INFO-028`).
+  `pyfmi_interfaces`'s (`INFO-028`).

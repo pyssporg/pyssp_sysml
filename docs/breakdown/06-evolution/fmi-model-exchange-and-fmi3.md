@@ -2,14 +2,14 @@
 id: IMP-016
 type: imp
 title: FMI Model Exchange and FMI 3.0 ownership
-summary: After the v0.4.0 split, pyfmi_sysml2 owns FMI 2.0 Co-Simulation packaging but no package owns Model Exchange or FMI 3.0.
+summary: After the v0.4.0 split, pyfmi_interfaces owns FMI 2.0 Co-Simulation packaging but no package owns Model Exchange or FMI 3.0.
 date: 2026-11-05
 status: suggested
 ---
 
 # FMI Model Exchange and FMI 3.0 ownership
 
-After the v0.4.0 split, FMI belongs to `pyfmi_sysml2` 0.1.0. Its scope covers
+After the v0.4.0 split, FMI belongs to `pyfmi_interfaces` 0.1.0. Its scope covers
 FMI 2.0 model descriptions, C headers, Modelica connectors, and FMU packaging.
 
 Two FMI capabilities have no owner:
@@ -21,7 +21,7 @@ Two FMI capabilities have no owner:
 
 **Candidate.**
 
-- Decide whether `pyfmi_sysml2` extends its FMI 2.0 surface or a separate
+- Decide whether `pyfmi_interfaces` extends its FMI 2.0 surface or a separate
   package owns ME and 3.0.
 - Keep the SSP side unchanged: `pyssp_sysml2` packages whatever `.fmu` file a
   leaf declares, regardless of FMI version (`INFO-012`).

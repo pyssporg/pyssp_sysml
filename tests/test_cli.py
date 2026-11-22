@@ -35,7 +35,7 @@ def write_parameter_cli_architecture(root: Path) -> Path:
     return root
 
 
-def test_pyssp_generate_fmi_points_to_pyfmi_sysml2(
+def test_pyssp_generate_fmi_points_to_pyfmi_interfaces(
     capsys: pytest.CaptureFixture,
 ) -> None:
     """The removed FMI subcommand names its replacement and fails."""
@@ -43,7 +43,7 @@ def test_pyssp_generate_fmi_points_to_pyfmi_sysml2(
 
     captured = capsys.readouterr()
     assert code == 1
-    assert "pyfmi_sysml2" in captured.out + captured.err
+    assert "pyfmi_interfaces" in captured.out + captured.err
 
 
 def test_pyssp_generate_ssv_cli_parameter_sets(tmp_path: Path) -> None:

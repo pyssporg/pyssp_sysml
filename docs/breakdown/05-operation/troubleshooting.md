@@ -21,7 +21,7 @@ the sibling `experimental_pyssp_standard`
 checkout (`INFO-020`).
 
 If `generate fmi` fails, that subcommand no longer exists. Install
-`pyfmi_sysml2` and run `pyfmi model-description` (`INFO-058`).
+`pyfmi_interfaces` and run `pyfmi model-description` (`INFO-058`).
 
 If `sync ssd` fails on external SSD files, check the SSD shape first:
 

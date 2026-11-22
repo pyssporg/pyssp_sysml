@@ -37,7 +37,7 @@ files.
 
 ```text
 pycps_sysml2            dialect: parse, IR, markers, policies
-  |-- pyfmi_sysml2      FMI artifacts
+  |-- pyfmi_interfaces      FMI artifacts
   `-- pyssp_sysml2      SSP-family assembly
 FMU producers           pyfmu_csv, project builders
 orchestrators           pyssp_workflow, build scripts, CI
@@ -195,7 +195,7 @@ Not public: private helpers (`_collect_fmu_resources`, `_connector_name`),
 - `repos/<name>` is its own repo: commit there, then bump the pin in the
   superproject.
 - Read the target repo's `AGENTS.md` and `docs/breakdown/00-intent/intent.md`.
-- Ownership: dialect `pycps_sysml2`, FMI `pyfmi_sysml2`, assembly and
+- Ownership: dialect `pycps_sysml2`, FMI `pyfmi_interfaces`, assembly and
   SSD-to-SysML `pyssp_sysml2`.
 - Gates: `ruff check src tests` and `python -m pytest -m "not slow"`. Do not
   hand-edit product-breakdown registers.

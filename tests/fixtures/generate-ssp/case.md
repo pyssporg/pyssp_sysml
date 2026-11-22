@@ -26,7 +26,7 @@ conditional that builds the block stays in Python; the document no longer does.
 validated, with the FMU path a slot. `valid-model-description.xml` declares the
 variables the architecture's SSD expects, so the packaging tests can validate a
 present FMU without generating a model description from SysML; FMI model
-descriptions come from `pyfmi_sysml2`. `mismatched-model-description.xml`
+descriptions come from `pyfmi_interfaces`. `mismatched-model-description.xml`
 declares a variable `other` where the SSD expects `output`, so it proves
 connector-name validation fails and that skipping validation packages it anyway.
 

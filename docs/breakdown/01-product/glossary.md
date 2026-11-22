@@ -28,7 +28,7 @@ status: current
   specializes a dialect marker (an experiment, FMU metadata, or SSP metadata).
   It carries data with no first-class SysML v2 equivalent.
 - **Leaf component**: a part definition with no effective subparts. It becomes an
-  SSD `Component`; its FMI model description is `pyfmi_sysml2`'s (`INFO-031`).
+  SSD `Component`; its FMI model description is `pyfmi_interfaces`'s (`INFO-031`).
 - **Nested system**: a part definition with effective subparts. It becomes a
   nested SSD `System`.
 

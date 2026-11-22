@@ -107,7 +107,7 @@ def _parse_configuration(value: str | None) -> str | None:
 #: FMI generation left this package in 0.4.0; the message is the migration path.
 FMI_MOVED = (
     "`generate fmi` was removed in pyssp_sysml2 0.4.0: FMI model descriptions "
-    "now come from pyfmi_sysml2 (install pyfmi-sysml2, then run "
+    "now come from pyfmi_interfaces (install pyfmi-interfaces, then run "
     "`pyfmi model-description`)."
 )
 

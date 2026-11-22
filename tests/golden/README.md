@@ -35,7 +35,7 @@ Layout inside a case directory mirrors a built SSP runtime, so an SSD
 ```
 
 FMI model descriptions are not generated here; they come from
-`pyfmi_sysml2`.
+`pyfmi_interfaces`.
 
 ## Regenerating
 

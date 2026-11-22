@@ -2,7 +2,7 @@
 id: INFO-028
 type: info
 title: Scope
-summary: What belongs in pyssp_sysml2 and what belongs to pycps_sysml2, pyfmi_sysml2, or another package.
+summary: What belongs in pyssp_sysml2 and what belongs to pycps_sysml2, pyfmi_interfaces, or another package.
 date: 2026-11-05
 status: current
 ---
@@ -24,7 +24,7 @@ Belongs elsewhere:
   and sets with their binds and resolution, typed metadata containers, variation,
   configuration, selection, and constraints: `pycps_sysml2`.
 - FMI model descriptions, C headers, Modelica connectors, and the FMU zip:
-  `pyfmi_sysml2`.
+  `pyfmi_interfaces`.
 - the SSP and FMI XML object model: `pyssp_standard`.
 - engine execution and result normalisation: `pyssp_simulate`.
 - measurement and judgment: `pyssp_vv`.

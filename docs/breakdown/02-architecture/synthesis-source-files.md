@@ -26,7 +26,7 @@ existing multi-file layout instead of collapsing everything into one file.
 What lives in SysML and what is derived:
 
 - **Parameter names and types**: stored in the interface; derived by
-  `generate ssd`; FMI variables read them in `pyfmi_sysml2`.
+  `generate ssd`; FMI variables read them in `pyfmi_interfaces`.
 - **Parameter values**: stored in the set; derived by `generate ssv`.
 - **SSV file path prefix**: not stored; CLI `--parameter-set-prefix`.
 - **Inline versus standalone SSM**: not stored; `generate ssd` inlines explicit
@@ -41,7 +41,7 @@ What lives in SysML and what is derived:
 - **Default experiment**: an `attribute defaults : <X>DefaultExperiment`
   container; read by `generate ssd` and synthesized by `generate sysml`
   (`INFO-004`).
-- **FMU model name and GUID**: derived by `pyfmi_sysml2` (`INFO-031`).
+- **FMU model name and GUID**: derived by `pyfmi_interfaces` (`INFO-031`).
 
 Synthesizing the parameter dialect for generated SysML is the one job of
 `parameters/synthesis/`, the only `pyssp_standard`-touching dialect helper left

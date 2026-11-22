@@ -23,7 +23,7 @@ scenarios are added as new sets.
 
 - **Parameter interface** is a `port def X :> ParameterInterface`. It becomes
   SSD parameter connectors; FMI parameter variables read the same interface in
-  `pyfmi_sysml2`.
+  `pyfmi_interfaces`.
 - **Parameter set** is an `attribute def Y :> ParameterSet`. It becomes one
   SSV file named after the set.
 - **Set application** is `attribute s : Y;` plus `bind ...` in a composition.

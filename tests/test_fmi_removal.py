@@ -1,6 +1,6 @@
 """FMI export left ``pyssp_sysml2`` in 0.4.0.
 
-Model descriptions now come from ``pyfmi_sysml2``. The package must not keep a
+Model descriptions now come from ``pyfmi_interfaces``. The package must not keep a
 compatibility export or a dormant ``artifacts.fmi`` module: an importable name
 would be a second, unmaintained implementation.
 """

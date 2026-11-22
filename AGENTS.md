@@ -34,7 +34,7 @@ library boundary; the CLI is the public surface for other projects.
 
 - The SysML dialect, parser and IR belong to `pycps_sysml2`; this package
   consumes them and never imports `sysmlpy`. FMI artifacts belong to
-  `pyfmi_sysml2`.
+  `pyfmi_interfaces`.
 - Current state, intent, and modeling conventions live in `docs/breakdown/`; the
   code is the source of truth when the two disagree.
 - Consumer layering (FMU producers and orchestrators) is documented in

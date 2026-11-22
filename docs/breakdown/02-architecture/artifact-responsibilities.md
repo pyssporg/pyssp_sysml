@@ -28,5 +28,5 @@ status: current
 - **SysML from SSD**: source is SSD plus referenced SSV/SSM. Contains a
   synthesized model, sets, interfaces, and binds (`INFO-038`).
 
-The FMI model description is `pyfmi_sysml2`'s; it reads the same interface and
+The FMI model description is `pyfmi_interfaces`'s; it reads the same interface and
 never the applied set values (`INFO-031`).

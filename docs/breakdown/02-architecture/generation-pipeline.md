@@ -21,7 +21,7 @@ The pipeline starts at a loaded `Architecture` from `pycps_sysml2`
 
 SSV, SSM, SSD, and SSP are separate outputs. `generate ssd` does not embed
 parameter values; it references an SSV and optionally inlines a mapping.
-FMI output is not a stage here; it is `pyfmi_sysml2`'s (`INFO-031`).
+FMI output is not a stage here; it is `pyfmi_interfaces`'s (`INFO-031`).
 
 Per-artifact sources are `INFO-039`; variation selection is `INFO-040`.
 

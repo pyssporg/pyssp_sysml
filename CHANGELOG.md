@@ -23,6 +23,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `fmu_meta` as `:> FmuModel` and declare the marker locally; components
   without metadata stay unmarked.
 
+## [0.6.1] - 2026-11-22
+
+### Changed
+
+- Pin the `pycps-sysml2` runtime dependency to the v0.4.0 release asset, which
+  carries the new `pyssp-sysml-definitions` dependency.
+
 ## [0.5.0] - 2026-11-09
 
 ### Added

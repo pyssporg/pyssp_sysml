@@ -31,8 +31,9 @@ pip install -e .
 
 `pyproject.toml` declares two direct-URL wheels:
 
-- `pycps-sysml2` 0.3.0, which pins `sysmlpy==0.96.4` itself;
-- `experimental-pyssp-standard` 0.9.2.dev0.
+- `pycps-sysml2` 0.4.0, which pins `sysmlpy==0.96.4` itself and depends on
+  `pyssp-sysml-definitions`;
+- `experimental-pyssp-standard` 0.9.4.dev0.
 
 `sysmlpy` is no longer a direct dependency: this package never imports the
 grammar (`AD-004`). The editable install provides the `pyssp` console script.

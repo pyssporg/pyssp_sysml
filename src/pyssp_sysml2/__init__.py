@@ -1,6 +1,6 @@
 """SysML utilities package for architecture parsing and generation SSP."""
 
-__version__ = "0.6.0"
+__version__ = "0.6.1"
 
 from pyssp_sysml2.artifacts.analysis import generate_analysis
 from pyssp_sysml2.artifacts.preflight import check_fmu_interfaces

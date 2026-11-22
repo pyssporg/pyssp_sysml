@@ -14,7 +14,7 @@ sysmlpy==0.96.4
    └── pycps_sysml2 0.1.0   parse, IR, names, exporter, variation, dialect,
                             parameters, selection, constraints, roles/policy
         ├── pyssp_sysml2 0.4.0   SSD/SSV/SSM/SSP/analysis, SSD to SysML, CLI
-        └── pyfmi_sysml2 0.1.0   modelDescription, C headers, Modelica, FMU zip
+        └── pyfmi_interfaces 0.1.0   modelDescription, C headers, Modelica, FMU zip
 ```
 
 - **`pycps_sysml2`** owns the SysML v2 dialect: `load()`, the dataclasses, the
@@ -23,7 +23,7 @@ sysmlpy==0.96.4
   policies. It has no `pyssp_standard` dependency.
 - **`pyssp_sysml2`** emits SSD, SSV, SSM, the analysis descriptor, and the
   packaged SSP, synthesizes and syncs SysML, and provides the `pyssp` CLI.
-- **`pyfmi_sysml2`** owns everything FMI.
+- **`pyfmi_interfaces`** owns everything FMI.
 - **`pyssp_standard`** handles SSP and FMI XML objects; consumed by this package.
 - **`pyssp_simulate`** runs engines and normalises results; consumes the
   generated SSP.

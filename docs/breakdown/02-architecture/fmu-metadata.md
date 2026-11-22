@@ -63,4 +63,4 @@ An experiment container is projected by SSP disposition: only `startTime` and
 `stopTime` reach the SSD's `DefaultExperiment`; `stepSize` and `tolerance` are
 FMI fields and are intentionally dropped.
 
-FMI generation itself is `pyfmi_sysml2`'s (`INFO-031`).
+FMI generation itself is `pyfmi_interfaces`'s (`INFO-031`).

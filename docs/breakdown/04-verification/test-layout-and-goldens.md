@@ -18,7 +18,7 @@ status: current
   compares every byte with the committed golden, and re-validates both copies
   through `pyssp_standard`.
 - Goldens cover SSD, SSV, and SSM conversion. The FMI goldens were removed with
-  FMI generation, which moved to `pyfmi_sysml2` (`INFO-058`).
+  FMI generation, which moved to `pyfmi_interfaces` (`INFO-058`).
 - `UPDATE_GOLDENS=1` regenerates a golden; CI refuses to write, and a golden
   change is reviewed as a contract change.
 - `tests/fixture_guard.py` fails a session that rewrites a committed fixture.

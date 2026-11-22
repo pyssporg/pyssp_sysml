@@ -54,5 +54,5 @@ Generated here: `parameter_sets/NominalSet.ssv` with `waypointCount` and the
 three `waypointX_km[i]` values, and `SystemStructure.ssd` with component
 `autopilot`, parameter connectors, and a `ParameterBinding` for
 `NominalSet.ssv` with prefix `autopilot.`. The FMI model description is
-`pyfmi_sysml2`'s; it carries the interface, never the applied set values, which
+`pyfmi_interfaces`'s; it carries the interface, never the applied set values, which
 stay a runtime SSP mapping (`INFO-031`).

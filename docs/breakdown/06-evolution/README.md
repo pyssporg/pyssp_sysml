@@ -25,5 +25,5 @@ Not-yet-decided improvements. Current state is never restated here.
 - **IMP-013** [Variation capture evidence](variation-capture-evidence.md) — The pinned parser drops variant members and usage-level flags, while the raw tree retains every variant member.
 - **IMP-014** [Variation implementation phases](variation-phases.md) — The route runs fail-loud, model, loader, resolve, generate, provenance, and export refusal in seven phases.
 - **IMP-015** [Variation risks and open questions](variation-risks-and-questions.md) — Parser coupling, double parsing, model surface, ambiguity, and provenance are the blast radius; three questions stay open.
-- **IMP-016** [FMI Model Exchange and FMI 3.0 ownership](fmi-model-exchange-and-fmi3.md) — After the v0.4.0 split, pyfmi_sysml2 owns FMI 2.0 Co-Simulation packaging but no package owns Model Exchange or FMI 3.0.
+- **IMP-016** [FMI Model Exchange and FMI 3.0 ownership](fmi-model-exchange-and-fmi3.md) — After the v0.4.0 split, pyfmi_interfaces owns FMI 2.0 Co-Simulation packaging but no package owns Model Exchange or FMI 3.0.
 <!-- pb:index:end -->

@@ -30,7 +30,7 @@ Consequences:
 - `generate ssd` emits parameter connectors but no `ParameterBinding`.
 - The FMI model description carries parameter variables, using interface
   defaults as FMI `start` values where declared; that output is
-  `pyfmi_sysml2`'s (`INFO-031`).
+  `pyfmi_interfaces`'s (`INFO-031`).
 - `generate ssv` writes nothing because no set is applied.
 
 This supports components parameterized externally or later in the workflow.
