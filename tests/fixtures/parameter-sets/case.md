@@ -15,7 +15,8 @@ All paths are relative to this directory.
 | `two-disjoint-sets.sysml` | complete document: two sets bound to different members; used by the SSD and SSM tests |
 | `interface-only.sysml` | complete document: interface without an applied set |
 
-`template.sysml` is filled per test by `render_fixture` with
+`template.sysml` imports the shipped `PysspCore` root and is filled per test by
+`render_fixture` with `$imports`,
 `$interface_marker`, `$interface_members`, `$sets`, `$composition`, and
 `$COMPOSITION_NAME`. It carries the package scaffolding that would otherwise be
 repeated in every test body.
@@ -35,3 +36,4 @@ place a change to that dialect is reviewed as SysML.
 | Date | Change | Reason |
 | --- | --- | --- |
 | 2026-10-28 | Documents moved out of the test module | Every test body started with an escaped document |
+| 2026-11-23 | Import the shipped vocabulary; `$imports` lets the missing-marker case opt out | The marker definitions are packaged, not local |

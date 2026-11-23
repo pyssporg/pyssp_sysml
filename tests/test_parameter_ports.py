@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
+from pycps_sysml2 import core_definitions
 from pyssp_standard import SSD
 
 from pycps_sysml2.parameters.dialect.composition import validate_parameter_dialect
@@ -19,13 +20,15 @@ from tests.fixture_files import render_fixture
 from tests.testhelpers import COMPOSITION_NAME, write_model
 
 
+#: The template imports the shipped vocabulary; a test may shadow a marker.
+INCLUDES = (core_definitions(),)
+
+
 def _model(
     *,
     port: str = "in port parameters : Params;",
-    markers: str = (
-        "port def ParameterInterface;\n"
-        "  attribute def ParameterSet;"
-    ),
+    imports: str = "private import PysspCore::*;",
+    markers: str = "",
     interface_decl: str = "port def Params :> ParameterInterface",
     interface_members: str = (
         "attribute gain : Real = 2.0;\n"
@@ -35,6 +38,7 @@ def _model(
 ) -> str:
     return render_fixture(
         "parameter-ports/template.sysml",
+        imports=imports,
         port=port,
         markers=markers,
         interface_decl=interface_decl,
@@ -43,10 +47,11 @@ def _model(
     )
 
 
-def _load(tmp_path: Path, text: str):
+def _load(tmp_path: Path, text: str, *, includes: bool = True):
     architecture_dir = tmp_path / "arch"
     write_model(architecture_dir / "model.sysml", text)
-    return architecture_dir, load(architecture_dir)
+    roots = INCLUDES if includes else ()
+    return architecture_dir, load(architecture_dir, *roots)
 
 
 @pytest.mark.parametrize(
@@ -120,11 +125,13 @@ def test_attribute_marker_is_rejected(tmp_path) -> None:
     _, architecture = _load(
         tmp_path,
         _model(
+            imports="",
             markers=(
                 "attribute def ParameterInterface;\n"
                 "  attribute def ParameterSet;"
             ),
         ),
+        includes=False,
     )
 
     with pytest.raises(ValueError, match="defined as an attribute def"):
@@ -160,7 +167,23 @@ def test_parameter_port_cannot_be_connected(tmp_path) -> None:
 
     with pytest.raises(ValueError, match="cannot be connected"):
         generate_ssd(
-            architecture_dir, tmp_path / "SystemStructure.ssd", COMPOSITION_NAME
+            architecture_dir,
+            tmp_path / "SystemStructure.ssd",
+            COMPOSITION_NAME,
+            includes=INCLUDES,
+        )
+
+
+def test_interface_port_must_use_the_reserved_usage_name(tmp_path) -> None:
+    """The reserved name is enforced: a marked port under 'gains' is an error."""
+    architecture_dir, _ = _load(tmp_path, _model(port="in port gains : Params;"))
+
+    with pytest.raises(ValueError, match="must be named 'parameters'"):
+        generate_ssd(
+            architecture_dir,
+            tmp_path / "SystemStructure.ssd",
+            COMPOSITION_NAME,
+            includes=INCLUDES,
         )
 
 
@@ -169,7 +192,7 @@ def test_ssd_connectors_are_flat_parameter_connectors(tmp_path) -> None:
     architecture_dir, _ = _load(tmp_path, _model())
     output_path = tmp_path / "SystemStructure.ssd"
 
-    generate_ssd(architecture_dir, output_path, COMPOSITION_NAME)
+    generate_ssd(architecture_dir, output_path, COMPOSITION_NAME, includes=INCLUDES)
 
     with SSD(output_path, mode="r") as ssd:
         component = ssd.system.elements[0]

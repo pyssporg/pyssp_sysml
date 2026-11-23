@@ -1,6 +1,5 @@
     package Example {
-      port def ParameterInterface;
-      attribute def ParameterSet;
+      private import PysspCore::*;
       port def Params :> ParameterInterface {
         attribute count : Integer;
         attribute gain : Real;

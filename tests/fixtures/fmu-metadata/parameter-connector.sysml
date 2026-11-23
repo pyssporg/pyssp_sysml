@@ -1,10 +1,5 @@
 package Example {
-          port def ParameterInterface;
-          attribute def ParameterSet;
-
-          part def FmuModel;
-
-          attribute def FmuMetadata { attribute implementation : String; }
+          private import PysspCore::*;
 
           attribute def CompFmu :> FmuMetadata {
             attribute implementation = "CoSimulation";

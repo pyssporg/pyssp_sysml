@@ -1,9 +1,5 @@
 package ModelOwnedAnalysis {
-  part def SspModel;
-  part def Analysis;
-
-  port def ParameterInterface;
-  attribute def ParameterSet;
+  private import PysspCore::*;
 
   port def LeafParameters :> ParameterInterface {
     attribute k : Real;
@@ -11,12 +7,6 @@ package ModelOwnedAnalysis {
 
   attribute def ScenarioSet :> ParameterSet {
     attribute k = 2.0;
-  }
-
-  attribute def Experiment {
-    attribute startTime : Real;
-    attribute stopTime : Real;
-    attribute stepSize : Real;
   }
 
   attribute def BaselineExperiment :> Experiment {

@@ -13,8 +13,9 @@ error.
 
 ## What this case proves
 
-The model declares an `SspMetadata` schema, a `LegacySsp` concrete definition
-with `source = "models/ssp/example/ssp"`, and an analysis over it, so it proves an
+The model imports the shipped `PysspCore` root; `LegacySsp :> SspMetadata` and
+`BaselineExperiment :> Experiment` are concrete carriers, and an analysis over
+them proves an
 analysis records the external model source and refuses to export it as an SSP or
 SSD. One `.replace()` deletes the `source` attribute to prove the descriptor
 then omits `model_source`; the other rewrites `LegacyBody :> SspModel` as
@@ -28,3 +29,4 @@ so the fixture bytes are the literal bytes. The replace calls are the case.
 | Date | Change | Reason |
 | --- | --- | --- |
 | 2026-10-28 | Moved out of `tests/test_ssp_metadata.py` | Document belongs in a file; derived variants stay `.replace()` edits |
+| 2026-11-23 | Import `PysspCore` instead of declaring the carriers | The vocabulary and the `Experiment` schema are shipped, not local |

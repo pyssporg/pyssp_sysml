@@ -1,12 +1,5 @@
 package LegacyAnalysis {
-  part def SspModel;
-  part def Analysis;
-
-  attribute def Experiment {
-    attribute startTime : Real;
-    attribute stopTime : Real;
-    attribute stepSize : Real;
-  }
+  private import PysspCore::*;
 
   attribute def BaselineExperiment :> Experiment {
     attribute startTime = 0.0;

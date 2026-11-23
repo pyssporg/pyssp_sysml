@@ -1,6 +1,5 @@
     package Example {
-      port def ParameterInterface;
-      attribute def ParameterSet;
+      private import PysspCore::*;
       port def AutopilotParameters :> ParameterInterface {
         attribute waypointCount : Integer;
         attribute waypointX_km : Real[3];

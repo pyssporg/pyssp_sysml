@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from pycps_sysml2 import core_definitions
 from pycps_sysml2.parameters.policy import SSP_POLICY
 import re
 from pathlib import Path
@@ -116,7 +117,8 @@ def test_generators_reject_reversed_bind(tmp_path) -> None:
 
 def _parameter_example_dirs() -> list[Path]:
     docs_examples = REPO_ROOT / "docs" / "methodology" / "examples" / "parameter-sets"
-    dirs = {REPO_ROOT / "examples" / "parameter_sets"}
+    examples = REPO_ROOT / "examples" / "parameter-sets"
+    dirs = {path.parent for path in examples.glob("*/model.sysml")}
     dirs.update(path.parent for path in docs_examples.glob("*/model.sysml"))
     return sorted(dirs)
 
@@ -169,7 +171,7 @@ def test_parameter_examples_use_canonical_bind_orientation() -> None:
 def test_parameter_examples_validate() -> None:
     """Every parameter-set example parses and resolves its applications."""
     for directory in _parameter_example_dirs():
-        architecture = load(directory)
+        architecture = load(directory, core_definitions())
         checked = 0
         for system in architecture.part_definitions.values():
             if not has_parameter_dialect(architecture, system, policy=SSP_POLICY):

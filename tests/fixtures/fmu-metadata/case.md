@@ -7,7 +7,7 @@ part that uses it.
 
 | Path | Kind |
 | --- | --- |
-| `template.sysml` | Input, template with `$marker`, `$concrete`, `$part_body`, `$COMPOSITION_NAME` |
+| `template.sysml` | Input, template with `$imports`, `$fmu_model`, `$marker`, `$concrete`, `$part_body`, `$COMPOSITION_NAME` |
 | `parameter-connector.sysml` | Input, template with `$COMPOSITION_NAME` |
 | `retired-implementation.sysml` | Input, template with `$COMPOSITION_NAME` |
 
@@ -16,11 +16,15 @@ SSD, or the raised error.
 
 ## What this case proves
 
-`template.sysml` is the one composition every metadata test varies. The marker
-(the schema part definition), the concrete definition, and the part body are the
-only parts that change, and they stay inline in `_metadata_model` on purpose:
-they are short fragments (under the 15-line document limit) whose point is the
-difference between two tests, not a document a reviewer reads on its own.
+`template.sysml` is the one composition every metadata test varies. It imports
+the shipped `PysspCore` vocabulary, so `FmuModel` and `FmuMetadata` come from
+`pyssp_sysml_definitions.core_definitions()`; only a test that probes the
+resolver's schema defaults shadows `FmuMetadata` locally. The two sync cases
+use a local schema because `sync_sysml_from_ssd` writes a self-contained model
+and does not preserve the import. The concrete definition and the part body
+stay inline in `_metadata_model` on purpose: they are short fragments (under
+the 15-line document limit) whose point is the difference between two tests,
+not a document a reviewer reads on its own.
 Filling the template proves default resolution, value-less redeclaration, a
 missing marker, an unknown member, a non-string value, duplicate metadata, a
 schema used directly, unmarked usage, and metadata on a system being rejected.
@@ -38,3 +42,4 @@ template and two complete documents). The template is filled with
 | Date | Change | Reason |
 | --- | --- | --- |
 | 2026-10-28 | Moved out of `tests/test_fmu_metadata.py` | The documents belong in files; marker, concrete, and part body stay inline as fragments |
+| 2026-11-23 | Load the shipped `PysspCore` root instead of restating the marker | The vocabulary is owned by `pyssp_sysml_definitions` |

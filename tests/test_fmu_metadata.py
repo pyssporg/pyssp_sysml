@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
+from pycps_sysml2 import core_definitions
 from pyssp_standard import SSD
 
 from pyssp_sysml2.metadata.fmu_metadata import (
@@ -18,14 +19,15 @@ from tests.fixture_files import render_fixture
 from tests.testhelpers import COMPOSITION_NAME, write_model
 
 
+#: The shipped vocabulary supplies FmuModel and FmuMetadata.
+INCLUDES = (core_definitions(),)
+
+
 def _metadata_model(
     *,
-    marker: str = """
-      attribute def FmuMetadata {
-        attribute source : String;
-        attribute implementation : String;
-      }
-    """,
+    imports: str = "private import PysspCore::*;",
+    fmu_model: str = "",
+    marker: str = "",
     concrete: str = """
       attribute def CompFmu :> FmuMetadata {
         attribute source = "build/fmus/Comp.fmu";
@@ -36,6 +38,8 @@ def _metadata_model(
 ) -> str:
     return render_fixture(
         "fmu-metadata/template.sysml",
+        imports=imports,
+        fmu_model=fmu_model,
         marker=marker,
         concrete=concrete,
         part_body=part_body,
@@ -43,10 +47,25 @@ def _metadata_model(
     )
 
 
-def _load(tmp_path: Path, text: str):
+#: ``sync_sysml_from_ssd`` writes a self-contained model and does not preserve
+#: the PysspCore import, so the sync cases declare their schema locally.
+LOCAL_METADATA = _metadata_model(
+    imports="",
+    fmu_model="part def FmuModel;",
+    marker="""
+      attribute def FmuMetadata {
+        attribute source : String;
+        attribute implementation : String;
+      }
+    """,
+)
+
+
+def _load(tmp_path: Path, text: str, *, includes: bool = True):
     architecture_dir = tmp_path / "arch"
     write_model(architecture_dir / "model.sysml", text)
-    return architecture_dir, load(architecture_dir)
+    roots = (core_definitions(),) if includes else ()
+    return architecture_dir, load(architecture_dir, *roots)
 
 
 def _component(ssd_path: Path):
@@ -88,6 +107,7 @@ def test_value_less_redeclaration_inherits_the_base_value(tmp_path) -> None:
         _metadata_model(
             marker="""
             attribute def FmuMetadata {
+              attribute source : String;
               attribute implementation : String = "CoSimulation";
             }
             """,
@@ -109,7 +129,7 @@ def test_generate_ssd_uses_metadata_source_and_implementation(tmp_path) -> None:
     architecture_dir, _ = _load(tmp_path, _metadata_model())
     output_path = tmp_path / "SystemStructure.ssd"
 
-    generate_ssd(architecture_dir, output_path, COMPOSITION_NAME)
+    generate_ssd(architecture_dir, output_path, COMPOSITION_NAME, includes=INCLUDES)
 
     component = _component(output_path)
     assert component.source == "resources/Comp.fmu"
@@ -141,7 +161,7 @@ def test_metadata_is_not_emitted_as_a_parameter_connector(tmp_path) -> None:
     )
     output_path = tmp_path / "SystemStructure.ssd"
 
-    generate_ssd(architecture_dir, output_path, COMPOSITION_NAME)
+    generate_ssd(architecture_dir, output_path, COMPOSITION_NAME, includes=INCLUDES)
 
     component = _component(output_path)
     assert [(connector.name, connector.kind) for connector in component.connectors] == [
@@ -165,7 +185,10 @@ def test_metadata_on_a_system_is_rejected(tmp_path) -> None:
 
     with pytest.raises(ValueError, match="subparts"):
         generate_ssd(
-            architecture_dir, tmp_path / "SystemStructure.ssd", COMPOSITION_NAME
+            architecture_dir,
+            tmp_path / "SystemStructure.ssd",
+            COMPOSITION_NAME,
+            includes=INCLUDES,
         )
 
 
@@ -183,7 +206,10 @@ def test_unknown_metadata_member_is_rejected(tmp_path) -> None:
 
     with pytest.raises(ValueError, match="unsupported member"):
         generate_ssd(
-            architecture_dir, tmp_path / "SystemStructure.ssd", COMPOSITION_NAME
+            architecture_dir,
+            tmp_path / "SystemStructure.ssd",
+            COMPOSITION_NAME,
+            includes=INCLUDES,
         )
 
 
@@ -237,9 +263,8 @@ def test_metadata_marker_cannot_be_used_directly(tmp_path) -> None:
 def test_missing_metadata_marker_is_rejected(tmp_path) -> None:
     architecture_dir, architecture = _load(
         tmp_path,
-        _metadata_model(
-            marker="",
-        ),
+        _metadata_model(imports="", fmu_model="part def FmuModel;"),
+        includes=False,
     )
 
     with pytest.raises(ValueError, match="missing marker definition"):
@@ -256,12 +281,15 @@ def test_unmarked_metadata_usage_is_rejected(tmp_path) -> None:
 
     with pytest.raises(ValueError, match="marked ':> FmuMetadata'"):
         generate_ssd(
-            architecture_dir, tmp_path / "SystemStructure.ssd", COMPOSITION_NAME
+            architecture_dir,
+            tmp_path / "SystemStructure.ssd",
+            COMPOSITION_NAME,
+            includes=INCLUDES,
         )
 
 
 def test_sync_updates_implementation_and_preserves_source(tmp_path) -> None:
-    _load(tmp_path, _metadata_model())
+    _load(tmp_path, LOCAL_METADATA, includes=False)
     architecture_dir = tmp_path / "arch"
     ssd_path = tmp_path / "SystemStructure.ssd"
     generate_ssd(architecture_dir, ssd_path, COMPOSITION_NAME)
@@ -288,7 +316,7 @@ def test_sync_updates_implementation_and_preserves_source(tmp_path) -> None:
 
 def test_sync_resolves_empty_component_source_by_part_name(tmp_path) -> None:
     """An empty SSD source carries no FMU and preserves the authored source."""
-    _load(tmp_path, _metadata_model())
+    _load(tmp_path, LOCAL_METADATA, includes=False)
     architecture_dir = tmp_path / "arch"
     ssd_path = tmp_path / "SystemStructure.ssd"
     generate_ssd(architecture_dir, ssd_path, COMPOSITION_NAME)
@@ -326,7 +354,10 @@ def test_retired_implementation_attribute_is_rejected(tmp_path) -> None:
         ValueError, match=r"pyssp_implementation .* is no longer supported"
     ):
         generate_ssd(
-            architecture_dir, tmp_path / "SystemStructure.ssd", COMPOSITION_NAME
+            architecture_dir,
+            tmp_path / "SystemStructure.ssd",
+            COMPOSITION_NAME,
+            includes=INCLUDES,
         )
 
 

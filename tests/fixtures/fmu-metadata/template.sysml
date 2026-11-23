@@ -1,5 +1,7 @@
 package Example {
-      part def FmuModel;
+      $imports
+
+      $fmu_model
 
       $marker
 

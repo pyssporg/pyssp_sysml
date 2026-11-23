@@ -15,7 +15,10 @@ SSV/SSM, the exported SysML text, or the raised error.
 
 ## What this case proves
 
-`architecture.sysml` carries both roles (`:> SspModel`, `:> Analysis`), a scenario
+The fixtures import the shipped `PysspCore` vocabulary, so `SspModel`,
+`Analysis`, `ParameterInterface`, `ParameterSet`, and `Experiment` are the
+packaged definitions rather than local copies. `architecture.sysml` carries both
+roles (`:> SspModel`, `:> Analysis`), a scenario
 set, and an analysis-owned parameter bind, so it proves role detection, SysML
 export/round-trip of specializations, and that an analysis scenario reaches the SSM
 as `leaf.k`, not `sut.leaf.k`. `experiment-only.sysml` has no scenario and
@@ -34,3 +37,4 @@ written verbatim, so the fixture bytes are the literal bytes.
 | Date | Change | Reason |
 | --- | --- | --- |
 | 2026-10-28 | Moved out of `tests/test_roles_analysis.py` | Documents belong in files; the derived variants stay `.replace()` edits |
+| 2026-11-23 | Import the shipped vocabulary | Role markers and the experiment schema are canonical in `pyssp_sysml_definitions` |

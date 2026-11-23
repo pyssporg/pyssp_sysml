@@ -13,7 +13,8 @@ All paths are relative to this directory.
 | `template.sysml` | SysML v2 template, filled once per test |
 | `connected-ports.sysml` | complete document: two parameter ports wired with `connect` |
 
-`template.sysml` is filled per test by `render_fixture` with `$port`, `$markers`,
+`template.sysml` imports the shipped `PysspCore` root and is filled per test by
+`render_fixture` with `$imports`, `$port`, `$markers`,
 `$interface_decl`, `$interface_members`, and `$COMPOSITION_NAME`. It carries the
 package scaffolding that would otherwise be repeated in every test body.
 
@@ -33,3 +34,4 @@ reads as SysML; the test decides pass or fail.
 | Date | Change | Reason |
 | --- | --- | --- |
 | 2026-10-28 | Template and document moved out of the test module | Test bodies carried escaped document text |
+| 2026-11-23 | Import the shipped vocabulary; `$imports` lets a malformed-marker case opt out | The marker definitions are packaged, not local |

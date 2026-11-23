@@ -5,6 +5,7 @@ import warnings
 from pathlib import Path
 
 import pytest
+from pycps_sysml2 import core_definitions
 from pyssp_standard import SSD, SSM, SSV
 
 from pyssp_sysml2.parameters.dialect.declarations import (
@@ -19,9 +20,13 @@ from pyssp_sysml2.model import load
 from tests.fixture_files import render_fixture
 from tests.testhelpers import COMPOSITION_NAME, write_model
 
+#: The fixtures import the shipped vocabulary.
+INCLUDES = (core_definitions(),)
+
 
 def _model(
     *,
+    imports: str = "private import PysspCore::*;",
     interface_marker: str = ":> ParameterInterface",
     interface_members: str = (
         "attribute waypointCount : Integer;\n"
@@ -50,6 +55,7 @@ def _model(
         """
     return render_fixture(
         "parameter-sets/template.sysml",
+        imports=imports,
         interface_marker=interface_marker,
         interface_members=interface_members,
         sets=sets,
@@ -81,7 +87,7 @@ def _ssm_summary(path: Path) -> list[tuple[str, str]]:
 def test_parameter_interface_members_are_declarations(tmp_path) -> None:
     """A typed parameter port exposes the interface members as declarations."""
     architecture_dir = _write(tmp_path, _model())
-    architecture = load(architecture_dir)
+    architecture = load(architecture_dir, *INCLUDES)
     system = architecture.get_part_def(COMPOSITION_NAME)
     part_def = architecture.resolve_part(system.parts["autopilot"])
 
@@ -100,7 +106,7 @@ def test_generate_ssv_for_applied_set(tmp_path) -> None:
     architecture_dir = _write(tmp_path, _model())
     output_dir = tmp_path / "sets"
 
-    written = generate_parameter_sets(architecture_dir, output_dir, COMPOSITION_NAME)
+    written = generate_parameter_sets(architecture_dir, output_dir, COMPOSITION_NAME, includes=INCLUDES)
 
     assert [path.name for path in written] == ["NominalSet.ssv"]
     assert _ssv_summary(written[0]) == [
@@ -117,7 +123,7 @@ def test_generate_ssv_for_all_sets(tmp_path) -> None:
     output_dir = tmp_path / "sets"
 
     written = generate_parameter_sets(
-        architecture_dir, output_dir, COMPOSITION_NAME, all_sets=True
+        architecture_dir, output_dir, COMPOSITION_NAME, includes=INCLUDES, all_sets=True
     )
 
     assert [path.name for path in written] == [
@@ -134,7 +140,7 @@ def test_generate_ssv_single_output_file(tmp_path) -> None:
     written = generate_parameter_sets(
         architecture_dir,
         tmp_path / "unused",
-        COMPOSITION_NAME,
+        COMPOSITION_NAME, includes=INCLUDES,
         set_names=["NominalSet"],
         output_path=output_path,
     )
@@ -146,7 +152,7 @@ def test_generate_ssv_single_output_file(tmp_path) -> None:
         generate_parameter_sets(
             architecture_dir,
             tmp_path / "unused",
-            COMPOSITION_NAME,
+            COMPOSITION_NAME, includes=INCLUDES,
             all_sets=True,
             output_path=output_path,
         )
@@ -158,7 +164,7 @@ def test_generate_ssm_for_explicit_mapping(tmp_path) -> None:
     output_dir = tmp_path / "mappings"
 
     written = generate_parameter_mappings(
-        architecture_dir, output_dir, COMPOSITION_NAME
+        architecture_dir, output_dir, COMPOSITION_NAME, includes=INCLUDES
     )
 
     assert [path.name for path in written] == ["NominalSet_autopilot.ssm"]
@@ -189,7 +195,7 @@ def test_whole_object_bind_is_identity_and_needs_no_ssm(tmp_path) -> None:
         """,
     )
     architecture_dir = _write(tmp_path, model)
-    architecture = load(architecture_dir)
+    architecture = load(architecture_dir, *INCLUDES)
     system = architecture.get_part_def(COMPOSITION_NAME)
 
     specs = mapping_specs(architecture, system, policy=SSP_POLICY)
@@ -203,7 +209,7 @@ def test_whole_object_bind_is_identity_and_needs_no_ssm(tmp_path) -> None:
     )
 
     assert generate_parameter_mappings(
-        architecture_dir, tmp_path / "mappings", COMPOSITION_NAME
+        architecture_dir, tmp_path / "mappings", COMPOSITION_NAME, includes=INCLUDES
     ) == []
 
 
@@ -215,7 +221,7 @@ def test_generate_ssd_emits_interface_parameter_connectors(tmp_path) -> None:
     generate_ssd(
         architecture_dir,
         output_path,
-        COMPOSITION_NAME,
+        COMPOSITION_NAME, includes=INCLUDES,
         parameter_set_prefix="sets",
     )
 
@@ -253,7 +259,7 @@ def test_generate_ssv_base_index_one(tmp_path) -> None:
     output_dir = tmp_path / "sets"
 
     written = generate_parameter_sets(
-        architecture_dir, output_dir, COMPOSITION_NAME, base_index=1
+        architecture_dir, output_dir, COMPOSITION_NAME, includes=INCLUDES, base_index=1
     )
 
     assert _ssv_summary(written[0]) == [
@@ -270,7 +276,7 @@ def test_generate_ssm_base_index_one(tmp_path) -> None:
     output_dir = tmp_path / "mappings"
 
     written = generate_parameter_mappings(
-        architecture_dir, output_dir, COMPOSITION_NAME, base_index=1
+        architecture_dir, output_dir, COMPOSITION_NAME, includes=INCLUDES, base_index=1
     )
 
     assert _ssm_summary(written[0]) == [
@@ -289,7 +295,7 @@ def test_generate_ssd_connector_names_base_index_one(tmp_path) -> None:
     generate_ssd(
         architecture_dir,
         output_path,
-        COMPOSITION_NAME,
+        COMPOSITION_NAME, includes=INCLUDES,
         parameter_set_prefix="sets",
         base_index=1,
     )
@@ -336,7 +342,7 @@ def test_generate_ssd_identity_binding_uses_prefix(tmp_path) -> None:
     architecture_dir = _write(tmp_path, model)
     output_path = tmp_path / "SystemStructure.ssd"
 
-    generate_ssd(architecture_dir, output_path, COMPOSITION_NAME)
+    generate_ssd(architecture_dir, output_path, COMPOSITION_NAME, includes=INCLUDES)
 
     with SSD(output_path, mode="r") as ssd:
         [binding] = ssd.system.parameter_bindings
@@ -357,7 +363,7 @@ def test_whole_object_bind_requires_matching_names(tmp_path) -> None:
 
     with pytest.raises(ValueError, match="cannot map set members"):
         generate_parameter_sets(
-            architecture_dir, tmp_path / "sets", COMPOSITION_NAME
+            architecture_dir, tmp_path / "sets", COMPOSITION_NAME, includes=INCLUDES
         )
 
 
@@ -379,7 +385,7 @@ def test_unbounded_parameter_multiplicity_is_rejected(tmp_path) -> None:
 
     with pytest.raises(ValueError, match="unbounded multiplicity"):
         generate_parameter_sets(
-            architecture_dir, tmp_path / "sets", COMPOSITION_NAME
+            architecture_dir, tmp_path / "sets", COMPOSITION_NAME, includes=INCLUDES
         )
 
 
@@ -394,7 +400,7 @@ def test_multiple_sets_binding_same_member_are_rejected(tmp_path) -> None:
         ValueError, match="Multiple parameter sets bind 'comp.count'"
     ):
         generate_parameter_sets(
-            architecture_dir, tmp_path / "sets", COMPOSITION_NAME
+            architecture_dir, tmp_path / "sets", COMPOSITION_NAME, includes=INCLUDES
         )
 
 
@@ -408,12 +414,12 @@ def test_multiple_disjoint_sets_for_one_component_are_supported(
     architecture_dir = _write(tmp_path, model)
 
     written = generate_parameter_sets(
-        architecture_dir, tmp_path / "sets", COMPOSITION_NAME
+        architecture_dir, tmp_path / "sets", COMPOSITION_NAME, includes=INCLUDES
     )
     assert [path.name for path in written] == ["Counts.ssv", "Gains.ssv"]
 
     ssd_path = tmp_path / "SystemStructure.ssd"
-    generate_ssd(architecture_dir, ssd_path, COMPOSITION_NAME)
+    generate_ssd(architecture_dir, ssd_path, COMPOSITION_NAME, includes=INCLUDES)
     with SSD(ssd_path, mode="r") as ssd:
         bindings = {
             binding.source: [
@@ -430,10 +436,7 @@ def test_multiple_disjoint_sets_for_one_component_are_supported(
 
 def test_missing_marker_definitions_are_rejected(tmp_path) -> None:
     """The marker defs themselves must exist in the package."""
-    model = _model().replace("port def ParameterInterface;\n", "").replace(
-        "attribute def ParameterSet;\n", ""
-    )
-    architecture_dir = _write(tmp_path, model)
+    architecture_dir = _write(tmp_path, _model(imports=""))
 
     with pytest.raises(ValueError, match="missing marker definition"):
         generate_parameter_sets(
@@ -447,7 +450,7 @@ def test_unmarked_interface_is_rejected(tmp_path) -> None:
 
     with pytest.raises(ValueError, match="not marked ':> ParameterInterface'"):
         generate_parameter_sets(
-            architecture_dir, tmp_path / "sets", COMPOSITION_NAME
+            architecture_dir, tmp_path / "sets", COMPOSITION_NAME, includes=INCLUDES
         )
 
 
@@ -465,7 +468,7 @@ def test_unmarked_set_is_rejected(tmp_path) -> None:
 
     with pytest.raises(ValueError, match="not marked ':> ParameterSet'"):
         generate_parameter_sets(
-            architecture_dir, tmp_path / "sets", COMPOSITION_NAME
+            architecture_dir, tmp_path / "sets", COMPOSITION_NAME, includes=INCLUDES
         )
 
 
@@ -498,7 +501,7 @@ def test_flat_parameter_attributes_are_rejected(tmp_path) -> None:
 
     with pytest.raises(ValueError, match="flat parameter attribute"):
         generate_parameter_sets(
-            architecture_dir, tmp_path / "sets", COMPOSITION_NAME
+            architecture_dir, tmp_path / "sets", COMPOSITION_NAME, includes=INCLUDES
         )
 
 
@@ -520,7 +523,7 @@ def test_type_mismatch_is_rejected(tmp_path) -> None:
 
     with pytest.raises(ValueError, match="incompatible types"):
         generate_parameter_sets(
-            architecture_dir, tmp_path / "sets", COMPOSITION_NAME
+            architecture_dir, tmp_path / "sets", COMPOSITION_NAME, includes=INCLUDES
         )
 
 
@@ -542,7 +545,7 @@ def test_list_length_mismatch_is_rejected(tmp_path) -> None:
 
     with pytest.raises(ValueError, match="provides 2 values"):
         generate_parameter_sets(
-            architecture_dir, tmp_path / "sets", COMPOSITION_NAME
+            architecture_dir, tmp_path / "sets", COMPOSITION_NAME, includes=INCLUDES
         )
 
 
@@ -561,7 +564,7 @@ def test_unbound_set_member_warns(tmp_path) -> None:
 
     with pytest.warns(UserWarning, match="not bound"):
         generate_parameter_sets(
-            architecture_dir, tmp_path / "sets", COMPOSITION_NAME
+            architecture_dir, tmp_path / "sets", COMPOSITION_NAME, includes=INCLUDES
         )
 
 
@@ -572,7 +575,7 @@ def test_declared_but_unapplied_set_warns_and_binds_nothing(tmp_path) -> None:
     output_path = tmp_path / "SystemStructure.ssd"
 
     with pytest.warns(UserWarning) as record:
-        generate_ssd(architecture_dir, output_path, COMPOSITION_NAME)
+        generate_ssd(architecture_dir, output_path, COMPOSITION_NAME, includes=INCLUDES)
 
     messages = [str(warning.message) for warning in record]
     unapplied = [text for text in messages if "declared but not applied" in text]
@@ -591,7 +594,7 @@ def test_unapplied_set_contributes_no_parameter_sets(tmp_path) -> None:
 
     with pytest.warns(UserWarning, match="declared but not applied"):
         written = generate_parameter_sets(
-            architecture_dir, tmp_path / "sets", COMPOSITION_NAME
+            architecture_dir, tmp_path / "sets", COMPOSITION_NAME, includes=INCLUDES
         )
 
     assert written == []
@@ -604,7 +607,7 @@ def test_applied_set_is_not_reported_as_unapplied(tmp_path) -> None:
 
     with warnings.catch_warnings():
         warnings.simplefilter("error")
-        generate_ssd(architecture_dir, output_path, COMPOSITION_NAME)
+        generate_ssd(architecture_dir, output_path, COMPOSITION_NAME, includes=INCLUDES)
 
     with SSD(output_path, mode="r") as ssd:
         assert len(ssd.system.parameter_bindings) == 1
@@ -618,7 +621,7 @@ def test_interface_only_model_generates_ssd_without_binding(tmp_path) -> None:
     architecture_dir = _write(tmp_path, model)
     output_path = tmp_path / "SystemStructure.ssd"
 
-    generate_ssd(architecture_dir, output_path, COMPOSITION_NAME)
+    generate_ssd(architecture_dir, output_path, COMPOSITION_NAME, includes=INCLUDES)
 
     with SSD(output_path, mode="r") as ssd:
         assert ssd.system.parameter_bindings == []
@@ -643,7 +646,7 @@ def test_generate_ssm_for_multiple_disjoint_sets(tmp_path) -> None:
     output_dir = tmp_path / "mappings"
 
     written = generate_parameter_mappings(
-        architecture_dir, output_dir, COMPOSITION_NAME
+        architecture_dir, output_dir, COMPOSITION_NAME, includes=INCLUDES
     )
 
     assert [path.name for path in written] == [
@@ -677,7 +680,7 @@ def test_generate_ssv_decodes_string_escapes(tmp_path) -> None:
     architecture_dir = _write(tmp_path, model)
 
     written = generate_parameter_sets(
-        architecture_dir, tmp_path / "sets", COMPOSITION_NAME
+        architecture_dir, tmp_path / "sets", COMPOSITION_NAME, includes=INCLUDES
     )
 
     assert [path.name for path in written] == ["TextSet.ssv"]
@@ -705,7 +708,7 @@ def test_generate_ssv_preserves_real_precision(tmp_path) -> None:
     architecture_dir = _write(tmp_path, model)
 
     written = generate_parameter_sets(
-        architecture_dir, tmp_path / "sets", COMPOSITION_NAME
+        architecture_dir, tmp_path / "sets", COMPOSITION_NAME, includes=INCLUDES
     )
 
     with SSV(written[0], mode="r") as ssv:

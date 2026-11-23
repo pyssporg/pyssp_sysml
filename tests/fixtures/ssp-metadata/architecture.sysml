@@ -1,19 +1,8 @@
 package LegacyModel {
-  part def SspModel;
-  part def Analysis;
-
-  attribute def SspMetadata {
-    attribute source : String;
-  }
+  private import PysspCore::*;
 
   attribute def LegacySsp :> SspMetadata {
     attribute source = "models/ssp/example/ssp";
-  }
-
-  attribute def Experiment {
-    attribute startTime : Real;
-    attribute stopTime : Real;
-    attribute stepSize : Real;
   }
 
   attribute def BaselineExperiment :> Experiment {

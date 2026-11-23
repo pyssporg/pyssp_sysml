@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 import pytest
-
+from pycps_sysml2 import core_definitions
 from pyssp_standard import SSV
 
 from pyssp_sysml2.artifacts.analysis import generate_analysis
@@ -16,6 +16,9 @@ from tests.fixture_files import fixture_text
 
 ARCHITECTURE = fixture_text("roles-analysis/architecture.sysml")
 
+#: The fixtures import the shipped vocabulary.
+INCLUDES = (core_definitions(),)
+
 
 def _write_architecture(tmp_path: Path) -> Path:
     path = tmp_path / "architecture.sysml"
@@ -25,7 +28,7 @@ def _write_architecture(tmp_path: Path) -> Path:
 
 def test_part_definition_specialization_roundtrips(tmp_path: Path) -> None:
     path = _write_architecture(tmp_path)
-    architecture = load(path)
+    architecture = load(path, core_definitions())
 
     assert architecture.get_part_def("System").specializes == ("SspModel",)
     assert architecture.get_part_def("test_baseline").specializes == ("Analysis",)
@@ -39,7 +42,7 @@ def test_part_definition_specialization_roundtrips(tmp_path: Path) -> None:
     roundtrip = tmp_path / "roundtrip"
     roundtrip.mkdir()
     (roundtrip / "architecture.sysml").write_text(exported, encoding="utf-8")
-    reloaded = load(roundtrip)
+    reloaded = load(roundtrip, core_definitions())
     assert reloaded.get_part_def("System").specializes == ("SspModel",)
     assert reloaded.get_part_def("test_baseline").specializes == ("Analysis",)
 
@@ -52,6 +55,7 @@ def test_generate_analysis_writes_scenario_and_descriptor(tmp_path: Path) -> Non
         output,
         "test_baseline",
         model_name="role_model",
+        includes=INCLUDES,
     )
 
     assert artifacts.ssv.is_file()
@@ -88,6 +92,7 @@ def test_generate_analysis_base_index_one(tmp_path: Path) -> None:
         "test_baseline",
         model_name="role_model",
         base_index=1,
+        includes=INCLUDES,
     )
 
     assert artifacts.ssv is not None and artifacts.ssm is not None
@@ -118,6 +123,7 @@ def test_generate_analysis_without_scenario_writes_experiment_only(tmp_path: Pat
         output,
         "baseline",
         model_name="legacy_model",
+        includes=INCLUDES,
     )
 
     assert artifacts.descriptor.is_file()
@@ -157,6 +163,7 @@ def test_generate_analysis_writes_analysis_doc_as_description(tmp_path: Path) ->
         output,
         "baseline",
         model_name="described_model",
+        includes=INCLUDES,
     )
 
     descriptor = json.loads(artifacts.descriptor.read_text(encoding="utf-8"))
@@ -180,6 +187,7 @@ def test_generate_analysis_with_model_owned_scenario_writes_experiment_only(
         output,
         "baseline",
         model_name="model_owned",
+        includes=INCLUDES,
     )
 
     assert artifacts.ssv is None
@@ -215,6 +223,7 @@ def test_generate_analysis_rejects_analysis_scenario_when_model_owns_one(
             tmp_path / "analysis",
             "baseline",
             model_name="model_owned",
+            includes=INCLUDES,
         )
 
 
@@ -225,7 +234,7 @@ def test_generate_ssd_emits_model_owned_parameter_binding(tmp_path: Path) -> Non
     architecture.write_text(MODEL_OWNED_SCENARIO_ARCHITECTURE, encoding="utf-8")
     output = tmp_path / "SystemStructure.ssd"
 
-    generate_ssd(architecture, output, "System")
+    generate_ssd(architecture, output, "System", includes=INCLUDES)
 
     text = output.read_text(encoding="utf-8")
     assert 'ParameterBinding source="parameter_sets/ScenarioSet.ssv"' in text
@@ -241,5 +250,6 @@ def test_generate_ssp_rejects_analysis(tmp_path: Path) -> None:
             architecture,
             tmp_path / "analysis.ssp",
             "test_baseline",
+            includes=INCLUDES,
             validate_fmus=False,
         )

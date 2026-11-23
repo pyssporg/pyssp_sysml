@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 import pytest
+from pycps_sysml2 import core_definitions
 
 from pyssp_sysml2.artifacts.ssd import generate_ssd
 from pyssp_sysml2.artifacts.ssp import generate_ssp
@@ -15,6 +16,9 @@ from tests.fixture_files import fixture_text
 
 
 ARCHITECTURE = fixture_text("ssp-metadata/architecture.sysml")
+
+#: The model declares concrete carriers and imports the shipped vocabulary.
+INCLUDES = (core_definitions(),)
 
 
 def _architecture(tmp_path: Path, text: str = ARCHITECTURE) -> Path:
@@ -29,6 +33,7 @@ def test_generate_analysis_records_model_source(tmp_path: Path) -> None:
         tmp_path / "analysis",
         "baseline",
         model_name="legacy",
+        includes=INCLUDES,
     )
 
     descriptor = json.loads(artifacts.descriptor.read_text(encoding="utf-8"))
@@ -47,6 +52,7 @@ def test_model_source_is_omitted_when_unset(tmp_path: Path) -> None:
         tmp_path / "analysis",
         "baseline",
         model_name="legacy",
+        includes=INCLUDES,
     )
 
     descriptor = json.loads(artifacts.descriptor.read_text(encoding="utf-8"))
@@ -56,9 +62,13 @@ def test_model_source_is_omitted_when_unset(tmp_path: Path) -> None:
 def test_external_source_is_not_exportable(tmp_path: Path) -> None:
     architecture = _architecture(tmp_path)
     with pytest.raises(ValueError, match="analysis-only boundary"):
-        generate_ssp(architecture, tmp_path / "model.ssp", "LegacyBody")
+        generate_ssp(
+            architecture, tmp_path / "model.ssp", "LegacyBody", includes=INCLUDES
+        )
     with pytest.raises(ValueError, match="analysis-only boundary"):
-        generate_ssd(architecture, tmp_path / "SystemStructure.ssd", "LegacyBody")
+        generate_ssd(
+            architecture, tmp_path / "SystemStructure.ssd", "LegacyBody", includes=INCLUDES
+        )
 
 
 def test_ssp_metadata_requires_an_ssp_model(tmp_path: Path) -> None:
@@ -68,7 +78,7 @@ def test_ssp_metadata_requires_an_ssp_model(tmp_path: Path) -> None:
         "  }",
         "  part def PlainPart {\n    attribute ssp_meta : LegacySsp;\n  }",
     )
-    architecture = load(_architecture(tmp_path, text))
+    architecture = load(_architecture(tmp_path, text), core_definitions())
 
     with pytest.raises(ValueError, match="not marked ':> SspModel'"):
         ssp_metadata(architecture, architecture.get_part_def("PlainPart"))
