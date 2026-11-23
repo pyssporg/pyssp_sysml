@@ -1,87 +1,19 @@
-"""Generic SSV generation helpers."""
+"""SSV composition wrapper: load, project the selected sets, emit."""
+
 from __future__ import annotations
 
+from collections.abc import Iterable, Sequence
 from pathlib import Path
-from collections.abc import Sequence
-from typing import Iterable
 
-from pyssp_standard import SSV
+from pycps_sysml2.model import load
 
-from pycps_sysml2.core.fmi_helpers import format_value
-from pycps_sysml2.model import Attribute, AttributeDefinition, load
-from pycps_sysml2.parameters.dialect.composition import validate_parameter_dialect
-from pycps_sysml2.parameters.dialect.declarations import fixed_count
-from pycps_sysml2.parameters.dialect.mapping import (
-    parameter_sets_for_generation,
-    validate_applied_sets,
+from pyssp_sysml2.core.paths import ensure_directory
+from pyssp_sysml2.emit.ssv import (  # noqa: F401 - documented compatibility names
+    parameter_set_resource,
+    populate_parameter_set,
+    write_parameter_set,
 )
-from pycps_sysml2.parameters.dialect.markers import validate_marker_definitions
-from pycps_sysml2.parameters.policy import SSP_POLICY
-
-from pyssp_sysml2.core.paths import ensure_directory, ensure_parent_dir
-
-
-def parameter_set_resource(prefix: str, set_name: str) -> str:
-    """Archive-relative path of one parameter set inside an SSP."""
-    prefix = prefix.strip().strip("/")
-    return f"{prefix}/{set_name}.ssv" if prefix else f"{set_name}.ssv"
-
-
-def populate_parameter_set(
-    ssv: SSV,
-    parameter_pairs: Iterable[tuple[str, Attribute]],
-    *,
-    base_index: int = 0,
-) -> None:
-    for name, attr in parameter_pairs:
-        data_type = attr.primitive_type_str()
-        if attr.value is None:
-            continue
-
-        if isinstance(attr.value, (list, tuple)):
-            for idx, item in enumerate(attr.value, start=base_index):
-                indexed_name = f"{name}[{idx}]"
-                formatted = format_value(data_type, item)
-                ssv.add_parameter(indexed_name, formatted, type_name=data_type)
-            continue
-
-        formatted = format_value(data_type, attr.value)
-        ssv.add_parameter(name, formatted, type_name=data_type)
-
-
-def write_parameter_set(
-    definition: AttributeDefinition,
-    output_path: Path,
-    *,
-    base_index: int = 0,
-) -> Path:
-    """Write one parameter-set definition as an SSV file.
-
-    ``base_index`` is the first array index emitted in parameter names, e.g.
-    0 -> ``waypointX_km[0]`` and 1 -> ``waypointX_km[1]``.
-    """
-    pairs = [
-        (name, attribute)
-        for name, attribute in definition.attributes.items()
-        if attribute.value is not None
-    ]
-    if not pairs:
-        raise ValueError(f"Parameter set '{definition.name}' has no values")
-    for name, attribute in pairs:
-        if not attribute.multiplicity:
-            continue
-        count = fixed_count(attribute.multiplicity, name)
-        if not isinstance(attribute.value, tuple) or len(attribute.value) != count:
-            raise ValueError(
-                f"Parameter set member '{name}' must provide {count} values "
-                f"for [{attribute.multiplicity}]"
-            )
-
-    ensure_parent_dir(output_path)
-    with SSV(output_path, mode="w") as ssv:
-        ssv.xml.name = definition.name
-        populate_parameter_set(ssv, pairs, base_index=base_index)
-    return output_path
+from pyssp_sysml2.projection import project_parameter_sets
 
 
 def generate_parameter_sets(
@@ -110,12 +42,11 @@ def generate_parameter_sets(
     """
     architecture = load(architecture_path, *includes)
     system = architecture.get_part_def(composition)
-    validate_marker_definitions(architecture)
-    validate_parameter_dialect(architecture, system, policy=SSP_POLICY)
-    validate_applied_sets(architecture, system, policy=SSP_POLICY)
-    definitions = parameter_sets_for_generation(
-        architecture, system, set_names=list(set_names) if set_names else None,
-        all_sets=all_sets, policy=SSP_POLICY,
+    definitions = project_parameter_sets(
+        architecture,
+        system,
+        set_names=set_names,
+        all_sets=all_sets,
     )
     if not definitions:
         return []

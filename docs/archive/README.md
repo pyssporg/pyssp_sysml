@@ -27,6 +27,8 @@ Records live in the cold-storage archive; extract one with `pb archive read <ID>
   pyssp_sysml2 validates implementation against the four ssd:Component values and projects only startTime and stopTime into the .ssd.
 - **AD-009** — Generated FMU components specialize FmuModel · accepted · 2026-11-20 · `AD-009`
   A synthesized component that receives fmu_meta is marked ':> FmuModel', and the generated file declares the marker locally.
+- **AD-010** — SSP emission splits into projection and emission inside one repository · accepted · 2026-11-22 · `AD-010`
+  The SSP emitters stop taking pycps objects; a projection stage produces parser-free records and an emission stage writes artifacts, while SSP stays one package until a non-SysML caller exists.
 
 ### Implementation
 

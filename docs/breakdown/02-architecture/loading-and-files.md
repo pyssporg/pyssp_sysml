@@ -33,7 +33,7 @@ an error.
 The loader is deliberately non-validating:
 
 - unresolved references return `None` from `resolve_part` / `resolve_port`;
-- generators raise the context-specific error;
+- the projection layer raises the context-specific error;
 - a model can load even if a generator rejects it later.
 
 SysML v2 syntax constraints:
@@ -48,14 +48,13 @@ SysML v2 syntax constraints:
   because they supply vocabulary. A model references a definition in another
   package through an explicit import, such as `private import PysspCore::*;`.
 
-The loaded `Architecture` is `pycps_sysml2`'s IR; this package consumes it
-(`INFO-031`, `INFO-038`).
+The loaded `Architecture` is `pycps_sysml2`'s IR (`INFO-031`). The SSP wrappers
+load, select, and enforce constraints; `pyssp_sysml2.projection` converts it to
+parser-free records, and `pyssp_sysml2.emit` never sees it (`INFO-039`).
 
-`pycps_sysml2.load(model, *includes)` merges shared dialect definitions, and
-the generators expose that as keyword-only `includes`. The usual element is
+`pycps_sysml2.load(model, *includes)` merges shared dialect definitions; the
+generators expose that as keyword-only `includes`. The usual element is
 `pycps_sysml2.core_definitions()`, the packaged `definitions/core.sysml`
-(`package PysspCore`). It is opt-in: empty `includes` is the default and loads
-only the model's own declarations, so a model that still declares the markers
-keeps working unchanged. Included names are excluded from export; the CLI's
-`--core-definitions` adds this one include after repeated `--architecture`
-roots.
+(`package PysspCore`). It is opt-in: empty `includes` loads only the model's own
+declarations; included names are excluded from export, and
+`--core-definitions` adds this include after repeated `--architecture` roots.

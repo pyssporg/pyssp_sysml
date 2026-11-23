@@ -1,6 +1,10 @@
-"""Deprecated shim: use :mod:`pycps_sysml2.model.parser` instead.
+"""Compatibility shim for :mod:`pycps_sysml2.model.parser`.
 
-Kept for one minor release; removed in pyssp_sysml2 v0.5.0.
+The parser lives in ``pycps_sysml2``; this module keeps the old import path
+resolvable. Shims stay in the package until a deliberate layout change retires
+them: ``tests/test_module_layout.py`` ratchets each one to a docstring plus a
+single ``import *``, so no removal release is scheduled and no shim carries
+logic. Import the owning module directly in new code.
 """
 
 from pycps_sysml2.model.parser import *  # noqa: F403

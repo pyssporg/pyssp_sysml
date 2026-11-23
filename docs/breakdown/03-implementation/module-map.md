@@ -2,7 +2,7 @@
 id: INFO-008
 type: info
 title: Module map
-summary: pyssp_sysml2 keeps artifact writers and SSD-to-SysML synthesis; the dialect and IR are pycps_sysml2 shims removed in 0.5.0.
+summary: pyssp_sysml2 keeps artifact wrappers, parser-free emitters, the projection stage, and SSD-to-SysML synthesis; the dialect and IR are pycps_sysml2 shims.
 date: 2026-11-05
 status: current
 ---
@@ -17,6 +17,8 @@ src/pyssp_sysml2/
 ├── __init__.py      canonical public surface: 8 generator functions plus check_fmu_interfaces
 ├── cli.py           `pyssp` entrypoint
 ├── artifacts/       analysis.py preflight.py ssd.py ssm.py ssp.py ssv.py
+├── projection/      model.py parts.py system.py: the only pycps consumer
+├── emit/            ssd.py ssv.py ssm.py ssp.py analysis.py: parser-free
 ├── sysml/           generate.py sync.py
 ├── core/            paths.py (real); the rest are shims
 ├── metadata/        shims
@@ -36,9 +38,10 @@ Only two regions below the moved packages still hold code:
   helper. `generation.py` holds `synthesize_parameter_dialect`.
 
 Every other module below `model/`, `core/`, `metadata/`, and `parameters/` is a
-one-line re-export shim naming its `pycps_sysml2` owner. The shims keep old
-`pyssp_sysml2.<package>` imports working for one minor release and are removed
-in v0.5.0. `tests/test_module_layout.py` is the static gate (`TEST-002`).
+re-export shim naming its `pycps_sysml2` owner. The shims keep old
+`pyssp_sysml2.<package>` imports working; no removal release is scheduled.
+`tests/test_module_layout.py` ratchets them to a docstring plus one import and
+is the static gate (`TEST-002`).
 
 Dependencies are two direct-URL wheels: `pycps-sysml2` 0.1.0 and
 `experimental-pyssp-standard` (`INFO-020`). `sysmlpy` is transitive, never
@@ -49,7 +52,7 @@ Public functions: `build_ssd`, `generate_ssd`, `generate_parameter_sets`,
 `generate_sysml_from_ssd`, `sync_sysml_from_ssd`, and
 `check_fmu_interfaces`. Each path-based generator takes keyword-only `includes`
 for `pycps_sysml2.load(model, *includes)`; an empty sequence is the default and
-`--core-definitions` is off (`INFO-032`, `INFO-021`). `artifacts/preflight.py`
-owns the shared FMU source resolution (`_resolve_fmu_source`,
-`_collect_fmu_resources`) that `ssp.py` imports, and the read-only interface
-check behind `pyssp validate`.
+`--core-definitions` is off (`INFO-032`, `INFO-021`). `emit/fmu_resources.py`
+owns the shared FMU source resolution that `ssp.py` and
+`artifacts/preflight.py` use; preflight holds the read-only interface check
+behind `pyssp validate`.

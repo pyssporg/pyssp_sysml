@@ -8,7 +8,6 @@ from pathlib import Path
 from typing import Optional
 
 import pycps_sysml2
-from pycps_sysml2.parameters.dialect.composition import component_definitions
 
 from pyssp_sysml2.core.paths import (
     DEFAULT_ARCH_PATH,
@@ -21,6 +20,7 @@ from pyssp_sysml2.artifacts.ssm import generate_parameter_mappings
 from pyssp_sysml2.artifacts.ssp import DEFAULT_PARAMETER_SET_PREFIX, generate_ssp
 from pyssp_sysml2.artifacts.ssv import generate_parameter_sets
 from pyssp_sysml2.artifacts.analysis import generate_analysis
+from pyssp_sysml2.projection import fmu_implementation_problems
 from pyssp_sysml2.sysml.generate import generate_sysml_from_ssd
 from pyssp_sysml2.sysml.sync import sync_sysml_from_ssd
 
@@ -415,12 +415,10 @@ def main(argv: Optional[list[str]] = None) -> int:
                 else:
                     print("PASS fmu-interfaces")
             if args.implementation is not None:
-                system = architecture.resolve_part(args.composition)
-                assert system is not None  # validate() raised otherwise
-                implementation_problems = pycps_sysml2.require_fmu_metadata(
+                implementation_problems = fmu_implementation_problems(
                     architecture,
-                    component_definitions(architecture, system),
-                    implementation=args.implementation,
+                    args.composition,
+                    args.implementation,
                 )
                 if implementation_problems:
                     for problem in implementation_problems:

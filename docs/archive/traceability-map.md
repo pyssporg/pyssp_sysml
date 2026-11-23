@@ -16,6 +16,7 @@ the leaf is the source of truth; the record is how the state got there.
 - **AD-007** — State: `03-implementation/ssd-artifact.md` (SSD artifact) · Artifacts: `src/pyssp_sysml2/artifacts/ssd.py`
 - **AD-008** — State: `02-architecture/fmu-metadata.md` (FMU metadata) · Artifacts: `src/pyssp_sysml2/artifacts/ssd.py`
 - **AD-009** — State: `02-architecture/fmu-metadata.md` (FMU metadata) · Artifacts: `src/pyssp_sysml2/sysml/generate.py`
+- **AD-010** — State: `02-architecture/generation-pipeline.md` (Generation pipeline) · Artifacts: `src/pyssp_sysml2/projection/`, `src/pyssp_sysml2/emit/`, `src/pyssp_sysml2/artifacts/ssd.py`, `src/pyssp_sysml2/artifacts/ssp.py`, `src/pyssp_sysml2/artifacts/ssv.py`, `src/pyssp_sysml2/artifacts/ssm.py`, `src/pyssp_sysml2/artifacts/analysis.py`, `tests/test_projection_seams.py`
 
 ### Implementation
 

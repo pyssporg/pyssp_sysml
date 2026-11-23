@@ -3,7 +3,7 @@
 The package root is the documented surface; everything below it is a domain
 package. This test reads source text only so a broken import graph cannot hide a
 layout problem. It also ratchets the size of the modules that are deliberately
-large, keeps the SysML dialect out of this package, and keeps the one-release
+large, keeps the SysML dialect out of this package, and keeps the
 compatibility shims logic-free.
 """
 
@@ -21,11 +21,21 @@ ROOT_MODULES = frozenset({"__init__.py", "cli.py"})
 
 #: Domain packages. A new top-level package is a deliberate edit to this list.
 SUBPACKAGES = frozenset(
-    {"core", "model", "parameters", "metadata", "artifacts", "sysml"}
+    {
+        "core",
+        "model",
+        "parameters",
+        "metadata",
+        "artifacts",
+        "projection",
+        "emit",
+        "sysml",
+    }
 )
 
-#: Modules kept for one minor release so `pyssp_sysml2.<pkg>` imports still
-#: resolve. Each maps to the :mod:`pycps_sysml2` module it re-exports.
+#: Compatibility shims so `pyssp_sysml2.<pkg>` imports still resolve. Each
+#: maps to the :mod:`pycps_sysml2` module it re-exports; no removal release is
+#: scheduled.
 SHIM_MODULES: dict[str, str] = {
     "model/__init__.py": "pycps_sysml2.model",
     "model/exporter.py": "pycps_sysml2.model.exporter",

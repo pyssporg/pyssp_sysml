@@ -1,4 +1,4 @@
-"""SSP parameter-mapping (SSM) generation from SysML ``bind`` statements."""
+"""SSM composition wrapper: load, project the mappings, emit."""
 
 from __future__ import annotations
 
@@ -8,10 +8,10 @@ from pathlib import Path
 from pyssp_standard import SSM
 
 from pycps_sysml2.model import load
-from pycps_sysml2.parameters.dialect.mapping import mapping_specs
-from pycps_sysml2.parameters.policy import SSP_POLICY
 
 from pyssp_sysml2.core.paths import ensure_directory
+from pyssp_sysml2.emit.ssm import build_ssm
+from pyssp_sysml2.projection import project_mappings
 
 
 def generate_parameter_mappings(
@@ -39,16 +39,13 @@ def generate_parameter_mappings(
     system = architecture.get_part_def(composition)
 
     written: list[Path] = []
-    for spec in mapping_specs(
-        architecture, system, policy=SSP_POLICY, base_index=base_index
-    ):
+    for spec in project_mappings(architecture, system, base_index=base_index):
         if spec.identity:
             continue
         component_name = spec.component_name.replace(".", "_")
         output_path = output_dir / f"{spec.set_name}_{component_name}.ssm"
         ensure_directory(output_dir)
         with SSM(output_path, mode="w") as ssm:
-            for source, target in spec.entries:
-                ssm.add_mapping(source, target)
+            build_ssm(ssm, spec)
         written.append(output_path)
     return sorted(written)

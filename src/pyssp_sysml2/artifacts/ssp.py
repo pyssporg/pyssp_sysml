@@ -1,166 +1,21 @@
-"""SSP archive packaging from a SysML architecture.
-
-``generate ssp`` closes the loop between the SysML model and a runnable SSP:
-
-* the SSD is generated from SysML,
-* every leaf component's built FMU is read from ``fmu_meta.source`` and added
-  under ``resources/``,
-* applied parameter sets are written as SSVs under the prefix referenced by
-  the SSD parameter bindings.
-
-The archive uses FMI-style fixed timestamps, so repeated runs with unchanged
-inputs produce byte-identical ``.ssp`` archives.
-"""
+"""SSP composition wrapper: load, select, enforce, project, package."""
 
 from __future__ import annotations
 
-import json
-import tempfile
-import warnings
 from collections.abc import Mapping, Sequence
-from pathlib import Path, PurePosixPath
+from pathlib import Path
 
-from pyssp_standard import (
-    Component,
-    FMU,
-    SSD,
-    SSP,
-    System,
-    copy_resource_directory,
-    validate_component_fmu,
-)
-
-from pycps_sysml2.metadata.roles import (
-    SSP_ROLES,
-    is_analysis,
-    require_resolved_variation,
-    validate_role_markers,
-)
-from pycps_sysml2.metadata.ssp_metadata import ssp_metadata
+from pycps_sysml2.metadata.roles import SSP_ROLES
 from pycps_sysml2.model import load
 from pycps_sysml2.parameters.constraints import enforce_constraints
-from pycps_sysml2.parameters.dialect.composition import validate_parameter_dialect
-from pycps_sysml2.parameters.dialect.mapping import parameter_sets_for_generation
-from pycps_sysml2.parameters.policy import SSP_POLICY
-from pycps_sysml2.parameters.variation import (
-    require_resolved_attribute_variation,
-    resolve_selected,
+from pycps_sysml2.parameters.variation import resolve_selected
+
+from pyssp_sysml2.emit.ssp import (  # noqa: F401 - documented compatibility names
+    DEFAULT_PARAMETER_SET_PREFIX,
+    SELECTION_ENTRY,
 )
-
-from pyssp_sysml2.artifacts.preflight import (
-    _FmuResource,
-    _collect_fmu_resources,
-)
-from pyssp_sysml2.artifacts.ssd import build_ssd
-from pyssp_sysml2.artifacts.ssv import parameter_set_resource, write_parameter_set
-from pyssp_sysml2.core.paths import ensure_parent_dir
-
-DEFAULT_PARAMETER_SET_PREFIX = "resources/parameter_sets"
-SELECTION_ENTRY = "extra/org.pyssp/selection.json"
-
-
-def _iter_components(system: System):
-    for element in system.elements:
-        if isinstance(element, System):
-            yield from _iter_components(element)
-        elif isinstance(element, Component):
-            yield element
-
-
-def _validate_ssd_components(
-    system: System,
-    resources: dict[str, Path | None],
-) -> None:
-    resources_by_source = {
-        f"resources/{resource_name}": source
-        for resource_name, source in resources.items()
-    }
-    model_descriptions: dict[Path, object] = {}
-
-    for component in _iter_components(system):
-        if not component.source:
-            # Design-first export: the component has no FMU yet.
-            continue
-        if component.source not in resources_by_source:
-            raise ValueError(
-                f"SSD component '{component.name}' references unknown FMU "
-                f"resource '{component.source}'"
-            )
-        source = resources_by_source[component.source]
-        if source is None:
-            # Design-first export: the resource is intentionally not packaged.
-            continue
-        if source not in model_descriptions:
-            with FMU(source, mode="r") as fmu:
-                with fmu.model_description as md:
-                    model_descriptions[source] = md.xml
-        validate_component_fmu(
-            component,
-            model_descriptions[source],
-            source=str(source),
-        )
-
-
-def _unique_resources(resources: list[_FmuResource]) -> dict[str, Path | None]:
-    unique: dict[str, Path | None] = {}
-    for resource in resources:
-        if (
-            resource.resource_name in unique
-            and unique[resource.resource_name] != resource.source
-        ):
-            raise ValueError(
-                f"FMU resource name '{resource.resource_name}' is used by "
-                f"{resource.part_def.name} and another part definition with a "
-                "different source"
-            )
-        unique[resource.resource_name] = resource.source
-    return unique
-
-
-def _add_fmu_resource(
-    archive: SSP, source: Path, resource_name: str
-) -> None:
-    if source.is_dir():
-        copy_resource_directory(
-            source,
-            archive.runtime.resolve("resources"),
-            resource_name,
-        )
-    else:
-        archive.runtime.add_file(source, target_name=f"resources/{resource_name}")
-
-
-def _normalise_parameter_set_prefix(prefix: str) -> str:
-    cleaned = str(prefix).strip().strip("/")
-    if not cleaned:
-        return ""
-    if "\\" in cleaned:
-        raise ValueError(
-            "parameter_set_prefix must use '/' separators inside the archive"
-        )
-    path = PurePosixPath(cleaned)
-    if path.is_absolute() or ".." in path.parts:
-        raise ValueError(
-            "parameter_set_prefix must be a relative archive path without '..'"
-        )
-    return path.as_posix()
-
-
-def _selection_document(
-    composition: str,
-    selections: Mapping[str, str],
-    configuration: str | None = None,
-) -> str:
-    """Deterministic JSON record of one build's variant selection.
-
-    ``configuration`` names the SysML configuration that produced the selection
-    and is omitted when the build composes the root.
-    """
-    document: dict[str, object] = {"composition": composition}
-    if configuration:
-        document["configuration"] = configuration
-    document["selections"] = dict(sorted(selections.items()))
-    return json.dumps(document, indent=2) + "\n"
+from pyssp_sysml2.emit.ssp import build_ssp
+from pyssp_sysml2.projection import project_system
 
 
 def generate_ssp(
@@ -213,96 +68,37 @@ def generate_ssp(
     :func:`pycps_sysml2.core_definitions` to supply the dialect core. Empty
     (the default) loads only the model's own declarations.
     """
-    parameter_set_prefix = _normalise_parameter_set_prefix(parameter_set_prefix)
     architecture = load(architecture_path, *includes)
     system = architecture.get_part_def(composition)
     canonical = None
     if selections:
         architecture, canonical = resolve_selected(
-        architecture, system, selections, roles=SSP_ROLES
-    )
+            architecture, system, selections, roles=SSP_ROLES
+        )
         system = architecture.get_part_def(composition)
     enforce_constraints(architecture, composition, canonical)
-    require_resolved_variation(architecture, system)
-    require_resolved_attribute_variation(architecture, system)
-    validate_role_markers(architecture)
-    if is_analysis(architecture, system):
+    model = project_system(architecture, system, base_index=base_index)
+    if model.is_analysis:
         raise ValueError(
             f"Composition '{composition}' is an Analysis; analyses are not "
             "exportable as SSPs. Export its 'part sut : <SspModel>' model "
             "instead."
         )
-    if ssp_metadata(architecture, system) is not None:
+    if model.ssp_source is not None:
         raise ValueError(
             f"Composition '{composition}' selects an external SSP source via "
             "'ssp_meta'; it is an analysis-only boundary and cannot be exported. "
             "Generate its analysis instead."
         )
-    validate_parameter_dialect(architecture, system, policy=SSP_POLICY)
-
-    fmu_resources = _collect_fmu_resources(
-        architecture, system, fmu_root, allow_missing=allow_missing_fmus
+    return build_ssp(
+        model,
+        output_path,
+        parameter_set_prefix=parameter_set_prefix,
+        fmu_root=fmu_root,
+        type_check=type_check,
+        validate_fmus=validate_fmus,
+        allow_missing_fmus=allow_missing_fmus,
+        selections=selections,
+        configuration=configuration,
+        base_index=base_index,
     )
-    for resource in fmu_resources:
-        if resource.source is None:
-            warnings.warn(
-                f"{resource.part_def.name}: FMU source is missing; the "
-                "component is exported without its FMU (design structure)",
-                stacklevel=2,
-            )
-    set_definitions = parameter_sets_for_generation(
-        architecture, system, policy=SSP_POLICY
-    )
-    unique_resources = _unique_resources(fmu_resources)
-
-    ensure_parent_dir(output_path)
-
-    with tempfile.TemporaryDirectory(prefix="pyssp_ssp_") as temp_dir:
-        temp_path = Path(temp_dir)
-        ssd_path = temp_path / "SystemStructure.ssd"
-        with SSD(ssd_path, mode="w") as ssd:
-            build_ssd(
-                ssd,
-                system,
-                architecture,
-                type_check,
-                parameter_set_prefix=parameter_set_prefix,
-                base_index=base_index,
-            )
-            if validate_fmus:
-                assert ssd.system is not None
-                _validate_ssd_components(ssd.system, unique_resources)
-
-        ssv_paths = []
-        for definition in set_definitions:
-            ssv_path = write_parameter_set(
-                definition,
-                temp_path / f"{definition.name}.ssv",
-                base_index=base_index,
-            )
-            ssv_paths.append((definition, ssv_path))
-
-        with SSP(output_path, mode="w") as archive:
-            archive.runtime.add_file(ssd_path, target_name="SystemStructure.ssd")
-            if selections:
-                selection_path = temp_path / "selection.json"
-                selection_path.write_text(
-                    _selection_document(composition, selections, configuration),
-                    encoding="utf-8",
-                )
-                archive.runtime.add_file(
-                    selection_path, target_name=SELECTION_ENTRY
-                )
-            for resource_name, source in sorted(unique_resources.items()):
-                if source is None:
-                    continue
-                _add_fmu_resource(archive, source, resource_name)
-            for definition, ssv_path in ssv_paths:
-                archive.runtime.add_file(
-                    ssv_path,
-                    target_name=parameter_set_resource(
-                        parameter_set_prefix, definition.name
-                    ),
-                )
-
-    return output_path
