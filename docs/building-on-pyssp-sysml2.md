@@ -39,7 +39,7 @@ plugin registry; the seam is the CLI plus files.
 pycps_sysml2            dialect: parse, IR, markers, policies
   |-- pyfmi_interfaces      FMI artifacts
   `-- pyssp_sysml2      SSP-family assembly
-FMU producers           pyfmu_csv, project builders
+FMU producers           pyfmu_csv, pyfmu_scenario, project builders
 orchestrators           pyssp_workflow, build scripts, CI
 ```
 
