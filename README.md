@@ -575,13 +575,16 @@ that one include.
 
 ## Runnable Examples
 
-From repo root:
+From the workspace root:
 
 ```bash
-# Ensure dependencies are installed first (see Local development above).
-bash examples/cli_usage.sh
-PYTHONPATH=src python3 examples/module_usage.py
+# Ensure dependencies are installed first (see Install above).
+bash repos/pyssp_sysml2/examples/cli_usage.sh
+python repos/pyssp_sysml2/examples/module_usage.py
 ```
+
+Both write under `build/examples/<script>/`; `--out DIR` overrides the
+directory.
 
 - CLI workflow: [`examples/cli_usage.sh`](examples/cli_usage.sh)
 - Python module workflow: [`examples/module_usage.py`](examples/module_usage.py)
