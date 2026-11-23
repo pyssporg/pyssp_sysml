@@ -18,15 +18,17 @@ pip install -r requirements-dev.txt
 pip install -e .
 ```
 
-`requirements-dev.txt` is for local or shared development where
-`experimental_pyssp_standard` comes from a sibling checkout (in the flat
-ecosystem workspace) instead of the pinned git reference.
+`requirements-dev.txt` is a single `-e ".[dev]"` line. It installs the runtime
+dependencies from the release wheels pinned in `pyproject.toml`; to develop
+against the `experimental_pyssp_standard` sibling checkout, install that tree
+editable after it as an override (the flat ecosystem workspace keeps it one
+level above this repository):
 
 ```bash
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements-dev.txt
-pip install -e .
+python3 -m pip install -e ../experimental_pyssp_standard
 ```
 
 `pyproject.toml` declares two direct-URL wheels:

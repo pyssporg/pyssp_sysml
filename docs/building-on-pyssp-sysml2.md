@@ -1,6 +1,6 @@
 # Building on pyssp_sysml2
 
-Status: current for `pyssp_sysml2` 0.5.0. The code and `docs/breakdown/` are
+Status: current for `pyssp_sysml2` 0.6.1. The code and `docs/breakdown/` are
 the source of truth.
 
 ## The important part
@@ -30,8 +30,8 @@ to wire and package. A model must satisfy both contracts, and producer
 requirements may go beyond what assembly needs.
 
 Do not extend `FmuMetadata` (its schema is canonical in
-`pyssp_sysml_definitions/core.sysml`; extra members are rejected). Do not add a
-plugin registry; the seam is the CLI plus files.
+`pyssp_sysml_definitions/src/pyssp_sysml_definitions/core.sysml`; extra members
+are rejected). Do not add a plugin registry; the seam is the CLI plus files.
 
 ## One-way layering
 
@@ -147,9 +147,9 @@ is rejected as a flat parameter attribute
    SysML attribute.
 
 `FmuMetadata`'s schema is canonical in
-`pyssp_sysml_definitions/core.sysml`; extra members are rejected
-(`pycps_sysml2/metadata/fmu_metadata.py:141`). There is no annotation channel: a
-"tag" is a typed definition or a part-type marker.
+`pyssp_sysml_definitions/src/pyssp_sysml_definitions/core.sysml`; extra members
+are rejected (`pycps_sysml2/metadata/fmu_metadata.py:141`). There is no
+annotation channel: a "tag" is a typed definition or a part-type marker.
 
 ## Prebuilt-first is the contract
 
@@ -180,7 +180,7 @@ delivered archive must have every FMU attached and pass validation.
 
 ## Public surface
 
-Exported (`src/pyssp_sysml2/__init__.py:5`): `build_ssd`,
+Exported (`src/pyssp_sysml2/__init__.py:13`): `build_ssd`,
 `check_fmu_interfaces`, `generate_ssd`, `generate_parameter_sets`,
 `generate_parameter_mappings`, `generate_ssp`, `generate_analysis`,
 `generate_sysml_from_ssd`, `sync_sysml_from_ssd`; the `pyssp` CLI; artifact
@@ -192,8 +192,8 @@ all problems in one pass.
 
 Not public: private helpers (`_collect_fmu_resources`, `_connector_name`),
 `SSP_POLICY`, unexported `src/` names, and the
-`pyssp_sysml2.{model,core,metadata,parameters}` shims (removed in 0.5.0; import
-`pycps_sysml2`).
+`pyssp_sysml2.{model,core,metadata,parameters}` shims (kept for old imports; new
+code imports `pycps_sysml2`).
 
 ## Anti-patterns
 

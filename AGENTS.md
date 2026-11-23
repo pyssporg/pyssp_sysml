@@ -35,6 +35,8 @@ library boundary; the CLI is the public surface for other projects.
 - The SysML dialect, parser and IR belong to `pycps_sysml2`; this package
   consumes them and never imports `sysmlpy`. FMI artifacts belong to
   `pyfmi_interfaces`.
+- Code lives under `src/pyssp_sysml2/`; `pyssp_sysml2.cli:main` is the `pyssp`
+  console script, and the package `__init__` is the public Python surface.
 - Current state, intent, and modeling conventions live in `docs/breakdown/`; the
   code is the source of truth when the two disagree.
 - Consumer layering (FMU producers and orchestrators) is documented in
@@ -51,8 +53,8 @@ library boundary; the CLI is the public surface for other projects.
   Nothing under `src/` imports `sysmlpy`; `tests/test_module_layout.py` enforces
   both rules.
 - **The moved packages stay shims.** `pyssp_sysml2.{model,core,metadata,
-  parameters}` re-export `pycps_sysml2` and hold no logic; they are removed in
-  v0.5.0. New code imports `pycps_sysml2` directly.
+  parameters}` re-export `pycps_sysml2` and hold no logic; no removal release is
+  scheduled. New code imports `pycps_sysml2` directly.
 - **SSP XML object handling belongs to `pyssp_standard`.** Do not duplicate
   it.
 - **Generated SysML is deliberately minimal.** Only SSD information with a
@@ -90,9 +92,11 @@ library boundary; the CLI is the public surface for other projects.
 
 ## Environment
 
-- Python >= 3.10.
+- Python >= 3.11.
 - Development: `python3 -m venv venv`, then `pip install -r
   requirements-dev.txt` and `pip install -e .`; this installs a sibling
   `experimental_pyssp_standard` checkout when one is present.
 - Tests: `./venv/bin/python -m pytest -q`; inspect the implementation first and
   prefer `rg` for search.
+- Lint: `ruff check src tests`; `pyproject.toml` holds the ruff configuration
+  (`E4`, `E7`, `E9`, `F`).

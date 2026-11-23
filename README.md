@@ -47,26 +47,24 @@ For local development:
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements-dev.txt
-pip install -e .
 ```
 
 This version depends on `pycps-sysml2` (which owns the SysML dialect, IR, and
 parameter resolution) and on the refactored `experimental_pyssp_standard` model
 API (`SSD.xml`, `SSV.xml`, `Connector.type_name`). It does not use the older
 `common_content_ssc` type objects. `sysmlpy` is not a direct dependency:
-`pycps-sysml2` pins `sysmlpy==0.96.4` itself. `requirements-dev.txt` installs the
-refactored `experimental_pyssp_standard` fork directly from the canonical git
-revision.
+`pycps-sysml2` pins `sysmlpy==0.96.4` itself. `requirements-dev.txt` is a
+single `-e ".[dev]"` line: the runtime dependencies are the release wheels
+pinned in `pyproject.toml`, not a separate git reference.
 
 If you are working in the flat ecosystem workspace and want to install the
-`experimental_pyssp_standard` sibling checkout instead of the pinned git
-reference:
+`experimental_pyssp_standard` sibling checkout on top of that wheel:
 
 ```bash
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements-dev.txt
-pip install -e .
+pip install -e ../experimental_pyssp_standard
 ```
 
 ## 2) Generate Artifacts (CLI)
@@ -98,6 +96,7 @@ Common options for architecture-based subcommands (`ssp`, `ssd`, `ssv`, `ssm`,
 pyssp generate ssd \
   --architecture examples/aircraft_subset \
   --composition AircraftComposition \
+  --core-definitions \
   --output build/generated/SystemStructure.ssd
 ```
 
@@ -109,8 +108,9 @@ SSD (default `parameter_sets`):
 
 ```bash
 pyssp generate ssd \
-  --architecture examples/parameter_sets \
-  --composition AircraftComposition \
+  --architecture examples/parameter-sets/explicit \
+  --composition ExplicitComposition \
+  --core-definitions \
   --output build/generated/SystemStructure.ssd \
   --parameter-set-prefix parameter_sets
 ```
@@ -128,6 +128,7 @@ file per set:
 pyssp generate ssv \
   --architecture examples/aircraft_subset \
   --composition AircraftComposition \
+  --core-definitions \
   --output-dir build/generated/parameter_sets
 ```
 
@@ -143,8 +144,9 @@ Explicit `bind` mappings produce SSP parameter-mapping files:
 
 ```bash
 pyssp generate ssm \
-  --architecture examples/parameter_sets \
-  --composition AircraftComposition \
+  --architecture examples/parameter-sets/explicit \
+  --composition ExplicitComposition \
+  --core-definitions \
   --output-dir build/generated/parameter_mappings
 ```
 
@@ -184,12 +186,14 @@ pyssp generate analysis \
   --architecture examples/analysis \
   --composition test_baseline \
   --model position_servo \
+  --core-definitions \
   --output-dir build/generated/analyses/test_baseline
 ```
 
 The command writes the applied scenario SSV, one `<Analysis>.ssm` with targets
 relative to the exported model root (the `sut.` prefix is stripped), and
-`analysis.json` with the experiment window and scenario paths. With zero applied
+`analysis.json` with the experiment window — start time, stop time, step size,
+and the tolerance when authored — and scenario paths. With zero applied
 sets it writes an experiment-only `analysis.json` (no SSV, no SSM), for a model
 body that stays a checked-in SSP and only authors its experiment window in
 SysML. It never writes an SSD or an SSP. `generate ssp` rejects a `:> Analysis`
@@ -329,7 +333,7 @@ SysML IR and dialect — all `pyssp_*` control attributes, the `SspModel`,
 and `ParameterSet` markers, and variation/configuration/selection/constraints.
 The compatibility shims `pyssp_sysml2.model`, `.core`, `.metadata`, and
 `.parameters` still import and only re-export `pycps_sysml2`; new code must
-import `pycps_sysml2` directly. The shims are removed in v0.5.0.
+import `pycps_sysml2` directly. No removal release is scheduled.
 
 ### FMU metadata
 
@@ -372,6 +376,7 @@ Package the SSD, applied parameter sets, and built FMUs into an SSP archive:
 pyssp generate ssp \
   --architecture examples/aircraft_subset \
   --composition AircraftComposition \
+  --core-definitions \
   --output build/generated/AircraftComposition.ssp \
   --fmu-root .
 ```
@@ -429,6 +434,7 @@ Apply edited SSD connection wiring back into SysML composition:
 pyssp sync ssd \
   --architecture examples/aircraft_subset \
   --composition AircraftComposition \
+  --core-definitions \
   --ssd build/generated/SystemStructure.ssd
 ```
 
@@ -438,6 +444,7 @@ Optional output directory (instead of overwriting source architecture files):
 pyssp sync ssd \
   --architecture examples/aircraft_subset \
   --composition AircraftComposition \
+  --core-definitions \
   --ssd build/generated/SystemStructure.ssd \
   --output-architecture-dir build/synced_sysml
 ```
@@ -487,7 +494,7 @@ equivalent as typed attribute containers. They are preserved by
 | --- | --- |
 | `Component/@implementation` | `part def <Part> :> FmuModel` with `attribute fmu_meta : <Part>FmuMetadata` carrying `implementation` |
 | Parameter connectors / bindings | `port def` interfaces, sets, `parameters` ports, and `bind` |
-| `DefaultExperiment` | `attribute defaults : <X>DefaultExperiment` (fields canonical in `pyssp_sysml_definitions/core.sysml`) |
+| `DefaultExperiment` | `attribute defaults : <X>DefaultExperiment` (fields canonical in `pyssp_sysml_definitions/src/pyssp_sysml_definitions/core.sysml`) |
 
 Flattening is an export option, not model data: `pyssp generate ssd
 --flat-connector` emits `signal` instead of `signal.value`. The same document
@@ -583,8 +590,8 @@ bash repos/pyssp_sysml2/examples/cli_usage.sh
 python repos/pyssp_sysml2/examples/module_usage.py
 ```
 
-Both write under `build/examples/<script>/`; `--out DIR` overrides the
-directory.
+Both write under the gitignored `build/examples/<script>/`; `--out DIR`
+overrides it.
 
 - CLI workflow: [`examples/cli_usage.sh`](examples/cli_usage.sh)
 - Python module workflow: [`examples/module_usage.py`](examples/module_usage.py)
@@ -652,6 +659,20 @@ Artifact purpose:
 | `[error] ... pyssp_implementation is no longer supported` | Legacy FMU implementation control attribute | Move `implementation` into `attribute fmu_meta : <Part>FmuMetadata` |
 | `[error] ... pyssp_parameter_set is no longer supported` | Legacy external SSV pointer | Define sets in SysML and bind them to component usages |
 | `pyssp: command not found` | Console script not installed on PATH | Use `PYTHONPATH=src python3 -m pyssp_sysml2.cli ...` or `pip install -e .` |
+
+## Development
+
+From the repository root, in the activated environment:
+
+```bash
+python -m pytest -q              # full suite
+python -m pytest -m "not slow"   # the CI selection
+ruff check src tests             # lint; pyproject selects E4/E7/E9/F
+```
+
+`pyproject.toml` sets `pythonpath = ["src"]`, so the suite runs against the
+checkout without an editable install. `tests/README.md` describes the layout,
+the level markers, and the fixture rules.
 
 ## Development Docs
 

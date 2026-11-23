@@ -28,7 +28,7 @@ src/pyssp_sysml2/
 
 The dialect, IR, names, exporter, variation, markers, parameter resolution,
 selection, constraints, and role/dialect policies belong to `pycps_sysml2`
-0.1.0, which pins `sysmlpy==0.96.4` itself (`INFO-031`, `AD-004`).
+0.4.0, which pins `sysmlpy==0.96.4` itself (`INFO-031`, `AD-004`).
 
 Only two regions below the moved packages still hold code:
 
@@ -43,7 +43,7 @@ re-export shim naming its `pycps_sysml2` owner. The shims keep old
 `tests/test_module_layout.py` ratchets them to a docstring plus one import and
 is the static gate (`TEST-002`).
 
-Dependencies are two direct-URL wheels: `pycps-sysml2` 0.1.0 and
+Dependencies are two direct-URL wheels: `pycps-sysml2` 0.4.0 and
 `experimental-pyssp-standard` (`INFO-020`). `sysmlpy` is transitive, never
 imported here.
 
