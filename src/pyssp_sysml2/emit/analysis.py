@@ -60,18 +60,22 @@ def build_analysis(
             "ssm": _relative_name(ssm_path, output_dir),
         }
 
+    experiment: dict[str, object] = {
+        "name": model.experiment.name,
+        "start_time": model.experiment.start_time,
+        "stop_time": model.experiment.stop_time,
+        "step_size": model.experiment.step_size,
+    }
+    if model.experiment.tolerance is not None:
+        experiment["tolerance"] = model.experiment.tolerance
+
     descriptor: dict[str, object] = {
         "model": model.model_name,
         "composition": model.model_composition,
         "sut": model.sut,
         "target_ssd": model.target_ssd,
         "analysis": model.analysis_name,
-        "experiment": {
-            "name": model.experiment.name,
-            "start_time": model.experiment.start_time,
-            "stop_time": model.experiment.stop_time,
-            "step_size": model.experiment.step_size,
-        },
+        "experiment": experiment,
     }
     if model.description:
         descriptor["description"] = model.description

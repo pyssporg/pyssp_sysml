@@ -70,6 +70,7 @@ def test_generate_analysis_writes_scenario_and_descriptor(tmp_path: Path) -> Non
     assert descriptor["sut"] == "sut"
     assert descriptor["scenario"]["ssv"] == artifacts.ssv.name
     assert descriptor["scenario"]["ssm"] == artifacts.ssm.name
+    assert descriptor["experiment"]["tolerance"] == 0.0001
 
     ssm = artifacts.ssm.read_text(encoding="utf-8")
     assert 'target="leaf.k"' in ssm
@@ -145,6 +146,7 @@ def test_generate_analysis_without_scenario_writes_experiment_only(tmp_path: Pat
         "stop_time": 1.0,
         "step_size": 0.001,
     }
+    assert "tolerance" not in descriptor["experiment"]
 
 
 def test_generate_analysis_writes_analysis_doc_as_description(tmp_path: Path) -> None:

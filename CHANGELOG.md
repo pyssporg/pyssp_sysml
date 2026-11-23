@@ -23,6 +23,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `fmu_meta` as `:> FmuModel` and declare the marker locally; components
   without metadata stay unmarked.
 
+### Fixed
+
+- `analysis.json` includes the experiment tolerance when authored.
+
 ## [0.6.1] - 2026-11-22
 
 ### Changed

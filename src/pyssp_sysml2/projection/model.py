@@ -127,6 +127,7 @@ class Experiment:
     start_time: float
     stop_time: float
     step_size: float | None = None
+    tolerance: float | None = None
 
 
 @dataclass(frozen=True)
