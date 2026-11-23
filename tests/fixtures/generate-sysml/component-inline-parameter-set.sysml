@@ -1,11 +1,9 @@
 package RecoveredFromSSD {
+  private import PysspCore::*;
+
   port def GainParameters :> ParameterInterface {
     attribute k : Real;
   }
-
-  port def ParameterInterface;
-
-  attribute def ParameterSet;
 
   attribute def parameters :> ParameterSet {
     attribute k : Real = 4.0;

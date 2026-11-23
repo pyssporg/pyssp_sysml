@@ -379,15 +379,45 @@ def test_sysml_roundtrip_preserves_implementation_without_source(tmp_path) -> No
     generate_sysml_from_ssd(ssd_path, generated, COMPOSITION_NAME)
 
     text = generated.read_text()
-    assert "part def FmuModel;" in text
-    assert "attribute def FmuMetadata {" in text
+    assert "private import PysspCore::*;" in text
+    assert "part def FmuModel;" not in text
+    assert "attribute def FmuMetadata {" not in text
     assert "attribute def RenamedFmuMetadata :> FmuMetadata {" in text
     assert 'attribute implementation : String = "CoSimulation";' in text
     assert "part def Renamed :> FmuModel {" in text
     assert "attribute fmu_meta : RenamedFmuMetadata;" in text
 
     regenerated = tmp_path / "regenerated.ssd"
-    generate_ssd(architecture_dir, regenerated, COMPOSITION_NAME)
+    generate_ssd(architecture_dir, regenerated, COMPOSITION_NAME, includes=INCLUDES)
     component = _component(regenerated)
     assert component.source == ""
     assert component.implementation == "CoSimulation"
+
+
+def test_sync_output_reloads_with_the_shipped_core_root(tmp_path) -> None:
+    """Sync writes the import, not a local copy, and reloads with PysspCore."""
+    ssd_path = tmp_path / "SystemStructure.ssd"
+    with SSD(ssd_path, mode="w") as ssd:
+        top = ssd.new_system(COMPOSITION_NAME)
+        ssd.rename(COMPOSITION_NAME)
+        top.add_component(
+            "comp",
+            source="resources/Comp.fmu",
+            implementation="CoSimulation",
+        )
+
+    architecture_dir = tmp_path / "arch"
+    architecture_dir.mkdir()
+    written = sync_sysml_from_ssd(
+        architecture_dir, ssd_path, COMPOSITION_NAME
+    )
+
+    text = written[0].read_text(encoding="utf-8")
+    assert text.count("private import PysspCore::*;") == 1
+    assert "attribute def FmuMetadata" not in text
+    assert "part def FmuModel" not in text
+
+    reloaded = load(architecture_dir, core_definitions())
+    metadata = fmu_metadata(reloaded, reloaded.get_part_def("Comp"))
+    assert metadata is not None
+    assert metadata.implementation == "CoSimulation"

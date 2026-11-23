@@ -6,6 +6,7 @@ from pathlib import Path
 
 from pyssp_standard import Component, SSD, System
 
+from pycps_sysml2 import core_definitions
 from pyssp_sysml2.artifacts.ssd import generate_ssd
 from pyssp_sysml2.artifacts.ssm import generate_parameter_mappings
 from pyssp_sysml2.artifacts.ssv import generate_parameter_sets
@@ -13,6 +14,10 @@ from pyssp_sysml2.sysml.generate import generate_sysml_from_ssd
 from pyssp_sysml2.model import load
 from tests.fixture_files import fixture_text
 from tests.testhelpers import write_model
+
+
+#: The generated architecture refers to the shipped vocabulary by import.
+INCLUDES = (core_definitions(),)
 
 
 def _write_reference_ssp(root: Path) -> Path:
@@ -53,15 +58,19 @@ def test_ssd_sysml_ssd_preserves_metadata(tmp_path: Path) -> None:
     assert "attribute def parameters :> ParameterSet" in generated_text
     assert "attribute parameters_set : parameters;" in generated_text
     assert "bind gain.parameters = parameters_set;" in generated_text
-    assert "part def FmuModel;" in generated_text
-    assert "attribute def FmuMetadata {" in generated_text
+    assert "private import PysspCore::*;" in generated_text
+    assert "part def FmuModel;" not in generated_text
+    assert "attribute def FmuMetadata {" not in generated_text
     assert "attribute def GainFmuMetadata :> FmuMetadata {" in generated_text
     assert 'attribute implementation : String = "CoSimulation";' in generated_text
     assert "part def Gain :> FmuModel {" in generated_text
     assert "attribute fmu_meta : GainFmuMetadata;" in generated_text
 
     regenerated = tmp_path / "regenerated.ssd"
-    generate_ssd(architecture_dir, regenerated, "RoundTrip", flat_connector=True)
+    generate_ssd(
+        architecture_dir, regenerated, "RoundTrip",
+        includes=INCLUDES, flat_connector=True,
+    )
 
     with SSD(regenerated, mode="r") as ssd:
         assert ssd.default_experiment.start_time == 0.0
@@ -101,7 +110,9 @@ def test_sysml_ssd_sysml_ssd_preserves_explicit_parameter_mapping(
     generate_sysml_from_ssd(first_ssd, roundtrip_arch / "architecture.sysml")
 
     second_ssd = tmp_path / "regenerated.ssd"
-    generate_ssd(roundtrip_arch, second_ssd, "SystemComposition")
+    generate_ssd(
+        roundtrip_arch, second_ssd, "SystemComposition", includes=INCLUDES
+    )
 
     def binding_summary(path: Path):
         with SSD(path, mode="r") as ssd:
@@ -169,7 +180,9 @@ def test_nested_parameter_path_roundtrip(tmp_path: Path) -> None:
     assert "bind outer.inner.parameters.k = Nom.k;" in text
 
     second_ssd = tmp_path / "regenerated.ssd"
-    generate_ssd(roundtrip_arch, second_ssd, "SystemComposition")
+    generate_ssd(
+        roundtrip_arch, second_ssd, "SystemComposition", includes=INCLUDES
+    )
     with SSD(second_ssd, mode="r") as ssd:
         top = ssd.system
         assert [element.name for element in top.elements] == ["outer"]
@@ -230,7 +243,9 @@ def test_nested_multiple_disjoint_sets_roundtrip(tmp_path: Path) -> None:
     assert "bind outer.inner.parameters.gain = Gains.k;" in text
 
     second_ssd = tmp_path / "regenerated.ssd"
-    generate_ssd(roundtrip_arch, second_ssd, "SystemComposition")
+    generate_ssd(
+        roundtrip_arch, second_ssd, "SystemComposition", includes=INCLUDES
+    )
     assert binding_summary(second_ssd) == binding_summary(first_ssd)
 
 
@@ -277,7 +292,9 @@ def test_nested_system_parameter_port_roundtrip(tmp_path: Path) -> None:
     assert "bind outer.inner.parameters.k = InnerSet.k;" in text
 
     second_ssd = tmp_path / "regenerated.ssd"
-    generate_ssd(roundtrip_arch, second_ssd, "SystemComposition")
+    generate_ssd(
+        roundtrip_arch, second_ssd, "SystemComposition", includes=INCLUDES
+    )
     with SSD(second_ssd, mode="r") as ssd:
         assert [
             (binding.source, mapping.target)
@@ -333,7 +350,9 @@ def test_boundary_connections_roundtrip(tmp_path: Path) -> None:
     assert "connect inner.v to y;" in text
 
     second_ssd = tmp_path / "regenerated.ssd"
-    generate_ssd(roundtrip_arch, second_ssd, "SystemComposition")
+    generate_ssd(
+        roundtrip_arch, second_ssd, "SystemComposition", includes=INCLUDES
+    )
 
     assert _wiring(second_ssd) == _wiring(first_ssd)
 

@@ -74,3 +74,4 @@ test but never reach a reviewer as a diff.
 | Date | Change | Reason |
 | --- | --- | --- |
 | 2026-10-28 | Case record and expected files added | Expected documents moved out of `test_generate_sysml.py`; bytes unchanged |
+| 2026-11-23 | Emit the `PysspCore` import instead of local marker copies | Generated SysML now consumes the shipped vocabulary |

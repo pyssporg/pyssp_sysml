@@ -46,6 +46,7 @@ def test_generate_sysml_round_trips_the_default_experiment(
     generate_sysml_from_ssd(ssd_path, output)
 
     text = output.read_text()
+    assert "private import PysspCore::*;" in text
     assert "attribute def PlantDefaults :> DefaultExperiment {" in text
     assert "attribute startTime : Real = 2.0;" in text
     assert "attribute stopTime : Real = 8.0;" in text
