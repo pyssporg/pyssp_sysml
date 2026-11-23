@@ -1,90 +1,84 @@
-# Analysis / SspModel Example
+# Analysis / SspModel
 
-Demonstrates the `Analysis` and `SspModel` role markers:
+Generates the analysis artifacts for a position servo: one exportable
+`SspModel` with two `Analysis` compositions over two applied scenarios.
 
-- `PositionServo :> SspModel` is the exportable model.
-- `test_baseline` and `test_aggressive` are `:> Analysis` definitions over the
-  same model. Each composes it through `sut`, applies exactly one parameter
-  set, and declares exactly one `Experiment`.
+## Run
 
-The model is a position servo with a `ServoAxis` system containing a `driver`
-and a parameterized `plant`. Both analyses bind the applied scenario set to the
-plant's parameter interface.
-
-```text
-examples/analysis/
-├── part_definitions.sysml  roles, experiment, parameter interface, model
-├── composition.sysml       scenario sets, experiments, analyses
-└── README.md
-```
-
-## Generate analysis artifacts
+From the `pyssp_dev` workspace root, with the workspace venv active:
 
 ```bash
 pyssp generate analysis \
-  --architecture examples/analysis \
+  --architecture repos/pyssp_sysml2/examples/analysis \
   --composition test_baseline \
   --model position_servo \
-  --output-dir build/generated/analyses/test_baseline
+  --core-definitions \
+  --output-dir build/examples/analysis/test_baseline
+```
 
+| Artifact | Path |
+| --- | --- |
+| Applied scenario | `build/examples/analysis/test_baseline/NominalScenario.ssv` |
+| Parameter mappings | `build/examples/analysis/test_baseline/test_baseline.ssm` |
+| Analysis descriptor | `build/examples/analysis/test_baseline/analysis.json` |
+
+Expected output:
+
+```text
+SSV written to build/examples/analysis/test_baseline/NominalScenario.ssv
+SSM written to build/examples/analysis/test_baseline/test_baseline.ssm
+Analysis descriptor written to build/examples/analysis/test_baseline/analysis.json
+```
+
+The second analysis differs only in its composition and scenario:
+
+```bash
 pyssp generate analysis \
-  --architecture examples/analysis \
+  --architecture repos/pyssp_sysml2/examples/analysis \
   --composition test_aggressive \
   --model position_servo \
-  --output-dir build/generated/analyses/test_aggressive
+  --core-definitions \
+  --output-dir build/examples/analysis/test_aggressive
 ```
 
-Each run writes:
-
-- `NominalScenario.ssv` (or `AggressiveScenario.ssv`): the applied scenario.
-- `test_baseline.ssm` (or `test_aggressive.ssm`): mappings relative to the
-  exported model root. The `sut.` prefix is stripped, so the targets are
-  `axis.plant.inputScale`, `axis.plant.gain`, and
-  `axis.plant.timeConstant`.
-- `analysis.json`: the model name, composition, `sut` usage, target SSD,
-  experiment window, and scenario paths.
-
-For example, `test_baseline/analysis.json` contains:
-
-```json
-{
-  "analysis": "test_baseline",
-  "composition": "PositionServo",
-  "experiment": {
-    "name": "experiment_baseline",
-    "start_time": 0.0,
-    "step_size": 0.01,
-    "stop_time": 10.0,
-    "tolerance": 1e-06
-  },
-  "model": "position_servo",
-  "scenario": {
-    "set": "NominalScenario",
-    "ssm": "test_baseline.ssm",
-    "ssv": "NominalScenario.ssv"
-  },
-  "sut": "sut",
-  "target_ssd": "SystemStructure.ssd"
-}
-```
-
-`generate analysis` never writes an SSD or an SSP. Generate the model structure
-separately when needed:
+`generate analysis` writes no SSD. Generate the model structure separately:
 
 ```bash
 pyssp generate ssd \
-  --architecture examples/analysis \
+  --architecture repos/pyssp_sysml2/examples/analysis \
   --composition PositionServo \
-  --output build/generated/PositionServo/SystemStructure.ssd
+  --core-definitions \
+  --output build/examples/analysis/PositionServo/SystemStructure.ssd
 ```
 
-## Rules this example relies on
+## Setup
 
-- The marker definitions `part def SspModel;` and `part def Analysis;` live in
-  the same package.
-- An analysis has exactly one `SspModel` part usage (`sut` here), one applied
-  scenario set, and one attribute typed by an `Experiment`.
-- `generate ssp` accepts `PositionServo` but rejects any `:> Analysis`
-  composition. Packaging the model as an SSP additionally requires
-  `fmu_meta.source` on each leaf component, which also means marking those
-  leaves `:> FmuModel` and declaring `part def FmuModel;` in the package.
+Activate the workspace venv (this checkout: `source ../venv/bin/activate`); the
+`pyssp` console script comes from the editable install of this package. See the
+workspace `README.md`.
+
+## What the definition encodes
+
+`PositionServo :> SspModel` is the exportable model. `test_baseline` and
+`test_aggressive` are `:> Analysis` definitions: each composes the model through
+`sut`, applies exactly one parameter set, and declares exactly one `Experiment`.
+The scenario binds land on the plant parameter interface, so the SSM targets are
+model-root relative (`axis.plant.inputScale`, `axis.plant.gain`,
+`axis.plant.timeConstant`); `analysis.json` records the model, composition,
+`sut` usage, target SSD, experiment window, and scenario files.
+
+Both role markers and their carriers come from the shared `PysspCore`
+vocabulary, imported as `private import PysspCore::*;`. The role contract is
+owned by
+[`docs/roles.md`](../../../pyssp_sysml_definitions/docs/roles.md).
+
+## Composition
+
+The servo is a `ServoAxis` system containing a `driver` and a parameterized
+`plant`. `test_baseline` uses `NominalScenario` over 10 s at 0.01 s steps;
+`test_aggressive` uses `AggressiveScenario` over 2 s at 0.002 s steps.
+
+`generate ssp` accepts `PositionServo` but rejects any `:> Analysis`
+composition. Packaging the model as an SSP additionally requires
+`fmu_meta.source` on each leaf component, which also means marking those leaves
+`:> FmuModel`; `FmuModel` and `FmuMetadata` come from `PysspCore`.

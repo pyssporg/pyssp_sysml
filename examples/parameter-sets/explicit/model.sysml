@@ -1,8 +1,7 @@
 package ExplicitExample {
   doc /* Explicit binds rename analysis-side set members to interface members. */
 
-  port def ParameterInterface;
-  attribute def ParameterSet;
+  private import PysspCore::*;
 
   port def AutopilotParameters :> ParameterInterface {
     attribute waypointCount : Integer;

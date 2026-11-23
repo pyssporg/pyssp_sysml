@@ -36,10 +36,12 @@ every later one is an included definition root forwarded as `includes`.
 `--core-definitions` is sugar for one such include, adding
 `pycps_sysml2.core_definitions()`
 (`SspModel`, `Analysis`, `Experiment`, `ParameterInterface`, `ParameterSet`,
-`FmuMetadata`, `SspMetadata`) after any repeated `--architecture` roots. It is
-off by default: without the flag a model must declare the markers it uses. The
-core definitions belong to `pycps_sysml2`; this package only passes the path to
-the loader.
+`FmuMetadata`, `SspMetadata`) after any repeated `--architecture` roots. That
+function re-exports `pyssp_sysml_definitions.core_definitions()`, so the
+definitions themselves belong to `pyssp_sysml_definitions`; this package only
+passes the path to the loader. It is off by default: without the flag a model
+must declare the markers it uses, and the example models import the vocabulary
+instead of declaring it.
 
 `pyssp validate` reports problems without writing an artifact. It runs the
 `pycps_sysml2` dialect validators, then compares every leaf component's expected
@@ -50,6 +52,7 @@ SSD connector names with its FMU's `variable_names`, and optionally checks
 pyssp validate \
   --architecture examples/aircraft_subset \
   --composition AircraftComposition \
+  --core-definitions \
   --fmu-root .
 ```
 

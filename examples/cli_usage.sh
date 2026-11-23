@@ -1,67 +1,52 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Usage:
-#   bash examples/cli_usage.sh [ARCH_DIR] [COMPOSITION] [OUT_DIR]
+# Generate the aircraft example's SSD, parameter sets, bootstrap SysML, and
+# SSD-synced SysML through the pyssp CLI. Run from the pyssp_dev workspace root:
 #
-# Example:
-#   bash examples/cli_usage.sh examples/aircraft_subset AircraftComposition build/generated
+#   bash repos/pyssp_sysml2/examples/cli_usage.sh [--out DIR]
 
-ARCH="${1:-examples/aircraft_subset}"
-COMP="${2:-AircraftComposition}"
-OUT_DIR="${3:-build/generated}"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+ARCH="$SCRIPT_DIR/aircraft_subset"
+COMP="AircraftComposition"
+
+OUT_DIR="build/examples/cli_usage"
+if [[ $# -gt 0 ]]; then
+  if [[ "$1" != "--out" || $# -ne 2 ]]; then
+    echo "usage: $0 [--out DIR]" >&2
+    exit 2
+  fi
+  OUT_DIR="${2%/}"
+fi
 BOOTSTRAP_DIR="$OUT_DIR/new_architecture"
 
-if command -v pyssp >/dev/null 2>&1; then
-  RUNNER=(pyssp)
-else
-  RUNNER=(python3 -m pyssp_sysml2.cli)
-  export PYTHONPATH="${PYTHONPATH:-src}"
-  if ! python3 -c "import pycps_sysml2, pyssp_standard" >/dev/null 2>&1; then
-    echo "Missing runtime dependencies. Install first:"
-    echo "  python3 -m venv venv && source venv/bin/activate"
-    echo "  pip install -r requirements-dev.txt && pip install -e ."
-    exit 1
-  fi
-fi
-
-printf "Architecture : %s\n" "$ARCH"
-printf "Composition  : %s\n" "$COMP"
-printf "Output dir   : %s\n" "$OUT_DIR"
-printf "Command      : %s\n" "${RUNNER[*]}"
-
-"${RUNNER[@]}" generate ssd \
+pyssp generate ssd \
   --architecture "$ARCH" \
   --composition "$COMP" \
-  --output "$OUT_DIR/SystemStructure.ssd"
+  --core-definitions \
+  --output "$OUT_DIR/SystemStructure.ssd" >/dev/null
 
-"${RUNNER[@]}" generate ssv \
+pyssp generate ssv \
   --architecture "$ARCH" \
   --composition "$COMP" \
-  --output-dir "$OUT_DIR/parameter_sets"
+  --core-definitions \
+  --output-dir "$OUT_DIR/parameter_sets" >/dev/null
 
 mkdir -p "$BOOTSTRAP_DIR"
-"${RUNNER[@]}" generate sysml \
+pyssp generate sysml \
   --ssd "$OUT_DIR/SystemStructure.ssd" \
   --composition "$COMP" \
-  --output "$BOOTSTRAP_DIR/architecture.sysml"
+  --output "$BOOTSTRAP_DIR/architecture.sysml" >/dev/null
 
-"${RUNNER[@]}" sync ssd \
+pyssp sync ssd \
   --architecture "$ARCH" \
   --composition "$COMP" \
+  --core-definitions \
   --ssd "$OUT_DIR/SystemStructure.ssd" \
-  --output-architecture-dir "$OUT_DIR/synced_sysml"
+  --output-architecture-dir "$OUT_DIR/synced_sysml" >/dev/null
 
-# Optional: package the built FMUs, SSD, and applied parameter sets.
-# Build the FMUs at their fmu_meta.source paths first, then run:
-# "${RUNNER[@]}" generate ssp \
-#   --architecture "$ARCH" \
-#   --composition "$COMP" \
-#   --output "$OUT_DIR/$COMP.ssp" \
-#   --fmu-root .
-
-printf "\nGenerated artifacts:\n"
-printf "%s\n" "- $OUT_DIR/SystemStructure.ssd"
-printf "%s\n" "- $OUT_DIR/parameter_sets"
-printf "%s\n" "- $BOOTSTRAP_DIR/architecture.sysml"
-printf "%s\n" "- $OUT_DIR/synced_sysml"
+printf '%s\n' \
+  "$OUT_DIR/SystemStructure.ssd" \
+  "$OUT_DIR/parameter_sets" \
+  "$BOOTSTRAP_DIR/architecture.sysml" \
+  "$OUT_DIR/synced_sysml"

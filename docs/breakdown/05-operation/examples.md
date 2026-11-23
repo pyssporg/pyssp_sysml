@@ -9,16 +9,25 @@ status: current
 
 # Runnable examples
 
+Run from the `pyssp_dev` workspace root; `--out` overrides the output directory.
+
 ```bash
-bash examples/cli_usage.sh
-PYTHONPATH=src python3 examples/module_usage.py
+bash repos/pyssp_sysml2/examples/cli_usage.sh
+python repos/pyssp_sysml2/examples/module_usage.py
 ```
 
 Each script defaults to `examples/aircraft_subset` and
-`AircraftComposition`, and writes under `build/generated`.
+`AircraftComposition`, and writes under `build/examples/<script>`. Both supply the core
+definitions as an include root (`--core-definitions` on the CLI,
+`pycps_sysml2.core_definitions()` in the Python API), as do the per-example
+commands.
 
-`examples/parameter-sets/` holds self-contained models for the parameter
-dialect:
+The example models import the shared `PysspCore` vocabulary and never declare
+its definitions locally; the vocabulary and role contract live in
+`pyssp_sysml_definitions` (roles:
+`docs/roles.md`). `examples/README.md` indexes the example directories.
+
+`examples/parameter-sets/` holds models for the parameter dialect:
 
 - `identity/` shows matching names, an identity bind, and no SSM.
 - `explicit/` shows different set and interface names, per-member binds, and an

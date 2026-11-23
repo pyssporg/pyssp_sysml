@@ -1,8 +1,7 @@
 package MultipleSetExample {
   doc /* Two disjoint sets applied to one component. */
 
-  port def ParameterInterface;
-  attribute def ParameterSet;
+  private import PysspCore::*;
 
   port def ControllerParameters :> ParameterInterface {
     attribute count : Integer;

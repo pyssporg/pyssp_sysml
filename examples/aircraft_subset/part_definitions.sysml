@@ -1,13 +1,5 @@
 package Aircraft {
-  port def ParameterInterface;
-  attribute def ParameterSet;
-
-  part def FmuModel;
-
-  attribute def FmuMetadata {
-    attribute source : String;
-    attribute implementation : String;
-  }
+  private import PysspCore::*;
 
   port def AutopilotParameters :> ParameterInterface {
     attribute note : String;

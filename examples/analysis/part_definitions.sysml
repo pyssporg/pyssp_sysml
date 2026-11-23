@@ -1,16 +1,5 @@
 package AnalysisDemo {
-  part def SspModel;
-  part def Analysis;
-
-  port def ParameterInterface;
-  attribute def ParameterSet;
-
-  attribute def Experiment {
-    attribute startTime : Real;
-    attribute stopTime : Real;
-    attribute stepSize : Real;
-    attribute tolerance : Real;
-  }
+  private import PysspCore::*;
 
   port def ServoCommand {
     attribute position_m : Real;

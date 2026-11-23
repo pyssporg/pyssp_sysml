@@ -1,21 +1,10 @@
-"""Example Python API usage for pyssp_sysml2.
+"""Generate the aircraft example artifacts through the Python API.
 
-Run from repository root:
+Run from the pyssp_dev workspace root:
 
-    PYTHONPATH=src python3 examples/module_usage.py
+    python repos/pyssp_sysml2/examples/module_usage.py
 
-Optional arguments:
-
-    PYTHONPATH=src python3 examples/module_usage.py \
-      --architecture examples/aircraft_subset \
-      --composition AircraftComposition \
-      --output-root build/generated
-
-    PYTHONPATH=src python3 examples/module_usage.py \
-      --architecture examples/aircraft_subset \
-      --composition AircraftComposition \
-      --output-root build/generated \
-      --bootstrap-architecture-dir build/new_architecture
+Pass ``--out`` to change the artifact directory.
 """
 
 from __future__ import annotations
@@ -23,76 +12,60 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
+import pycps_sysml2
+
 from pyssp_sysml2.artifacts.ssd import generate_ssd
 from pyssp_sysml2.artifacts.ssv import generate_parameter_sets
-from pyssp_sysml2.sysml.generate import generate_sysml_from_ssd
 from pyssp_sysml2.sysml.sync import sync_sysml_from_ssd
+
+# The shared PysspCore vocabulary is an include root: pycps_sysml2 re-exports
+# pyssp_sysml_definitions; no .sysml file is copied into this repository.
+CORE_DEFINITIONS = (pycps_sysml2.core_definitions(),)
+ARCHITECTURE = Path(__file__).resolve().parent / "aircraft_subset"
+COMPOSITION = "AircraftComposition"
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--architecture",
+        "--out",
         type=Path,
-        default=Path("examples/aircraft_subset"),
-        help="Path to SysML architecture directory or a file inside it.",
-    )
-    parser.add_argument(
-        "--composition",
-        default="AircraftComposition",
-        help="Top-level composition part definition name.",
-    )
-    parser.add_argument(
-        "--output-root",
-        type=Path,
-        default=Path("build/generated"),
+        default=Path("build/examples/module_usage"),
         help="Output root directory.",
-    )
-    parser.add_argument(
-        "--bootstrap-architecture-dir",
-        type=Path,
-        default=None,
-        help="Optional output directory for a minimal SysML architecture generated from SSD.",
     )
     return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
+    ssd_path = args.out / "SystemStructure.ssd"
+    parameter_set_dir = args.out / "parameter_sets"
+    sync_dir = args.out / "synced_sysml"
 
-    ssd_path = args.output_root / "SystemStructure.ssd"
-    parameter_set_dir = args.output_root / "parameter_sets"
-    sync_dir = args.output_root / "synced_sysml"
-
-    generate_ssd(args.architecture, ssd_path, args.composition)
-    generate_parameter_sets(
-        args.architecture, parameter_set_dir, args.composition
-    )
-    bootstrapped = []
-    if args.bootstrap_architecture_dir is not None:
-        bootstrapped = [
-            generate_sysml_from_ssd(
-                ssd_path,
-                args.bootstrap_architecture_dir / "architecture.sysml",
-                args.composition,
-            )
-        ]
-    synced = sync_sysml_from_ssd(
-        args.architecture,
+    generate_ssd(
+        ARCHITECTURE,
         ssd_path,
-        args.composition,
+        COMPOSITION,
+        includes=CORE_DEFINITIONS,
+    )
+    generate_parameter_sets(
+        ARCHITECTURE,
+        parameter_set_dir,
+        COMPOSITION,
+        includes=CORE_DEFINITIONS,
+    )
+    synced = sync_sysml_from_ssd(
+        ARCHITECTURE,
+        ssd_path,
+        COMPOSITION,
         output_architecture_dir=sync_dir,
+        includes=CORE_DEFINITIONS,
     )
 
-    print(f"SSD: {ssd_path}")
-    print(f"Parameter sets: {parameter_set_dir}")
-    print("Synced SysML files:")
+    print(ssd_path)
+    print(parameter_set_dir)
     for path in synced:
-        print(f"  - {path}")
-    if bootstrapped:
-        print("Bootstrapped SysML files:")
-        for path in bootstrapped:
-            print(f"  - {path}")
+        print(path)
 
 
 if __name__ == "__main__":

@@ -1,8 +1,7 @@
 package NestedPathExample {
   doc /* A set applied to a component below a nested system usage. */
 
-  port def ParameterInterface;
-  attribute def ParameterSet;
+  private import PysspCore::*;
 
   port def InnerParameters :> ParameterInterface {
     attribute k : Real;

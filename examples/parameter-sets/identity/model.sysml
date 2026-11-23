@@ -1,8 +1,7 @@
 package IdentityExample {
   doc /* Identity bind: set member names match interface member names. */
 
-  port def ParameterInterface;
-  attribute def ParameterSet;
+  private import PysspCore::*;
 
   port def AutopilotParameters :> ParameterInterface {
     doc /* Parameter surface of the autopilot FMU. */
