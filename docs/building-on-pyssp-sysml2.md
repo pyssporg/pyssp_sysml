@@ -29,9 +29,9 @@ things from it. The producer decides what to build; the assembler decides how
 to wire and package. A model must satisfy both contracts, and producer
 requirements may go beyond what assembly needs.
 
-Do not extend `FmuMetadata` (the schema is `source` and `implementation`; extra
-members are rejected). Do not add a plugin registry; the seam is the CLI plus
-files.
+Do not extend `FmuMetadata` (its schema is canonical in
+`pyssp_sysml_definitions/core.sysml`; extra members are rejected). Do not add a
+plugin registry; the seam is the CLI plus files.
 
 ## One-way layering
 
@@ -93,12 +93,38 @@ FMU file or extracted directory is copied into the archive; `generate ssp`
 always rebuilds the SSD from SysML, so external SSD edits need `pyssp sync ssd`
 first.
 
+## Role landing
+
+The role vocabulary — build metadata, initialization configuration, runtime
+signal — and the carrier that means each are defined in
+`pyssp_sysml_definitions` `docs/roles.md` (short contract in `core.sysml`);
+`pycps_sysml2` implements recognition. This guide states only how each role
+lands in the artifacts.
+
+| role | artifact landing |
+|---|---|
+| build metadata | `ssd:Component/@source`, `@implementation`, `ssd:DefaultExperiment`; never a connector or an FMI variable |
+| initialization | SSD `kind="parameter"` connectors, SSV values, SSM bindings; FMI `causality="parameter"`, `variability="fixed"` |
+| runtime | SSD `kind="input"`/`"output"` connectors; FMI `causality="input"`/`"output"` |
+
+- Metadata is build-time only. It never propagates and never becomes a wire
+  field; `fmu_meta.source` is an authoring path the assembler resolves and
+  rewrites to `resources/<PartDefinition>.fmu`.
+- Parameters are initialization configuration. The dialect has no
+  runtime-tuning marker: a producer that must keep a value tunable expresses it
+  in its own FMI `variability`, not by adding a SysML attribute.
+- Ports are runtime information. A port must not reach `ParameterInterface`
+  unless it carries initialization values, and the interface port is found
+  under the reserved usage name `parameters` (`.parameters` in binds). Any
+  other name is a validation error, because every exporter would otherwise skip
+  it silently.
+
 ## Where producer data may live
 
 An exported component may carry only control attributes, one `FmuMetadata`
 attribute, an `SspMetadata` attribute, and parameter-set usages. Anything else
 is rejected as a flat parameter attribute
-(`pycps_sysml2/parameters/dialect/composition.py:384`). Three legal places:
+(`pycps_sysml2/parameters/dialect/composition.py:472`). Three legal places:
 
 1. **Part-type marker** for discovery:
 
@@ -107,7 +133,8 @@ is rejected as a flat parameter attribute
    part def CsvSource :> CsvComponent { attribute fmu_meta : CsvSourceFmu; }
    ```
 
-2. **Parameter interface** for values the SSP carries to run time:
+2. **Parameter interface** for initialization values the SSP carries to run
+   time:
 
    ```sysml
    port def CsvSourceParameters :> ParameterInterface {
@@ -119,9 +146,10 @@ is rejected as a flat parameter attribute
 3. **Producer config** for build-only data. Key it by part name; do not add a
    SysML attribute.
 
-`FmuMetadata` is fixed to `source` and `implementation`; extra members are
-rejected (`pycps_sysml2/metadata/fmu_metadata.py:141`). There is no annotation
-channel: a "tag" is a typed definition or a part-type marker.
+`FmuMetadata`'s schema is canonical in
+`pyssp_sysml_definitions/core.sysml`; extra members are rejected
+(`pycps_sysml2/metadata/fmu_metadata.py:141`). There is no annotation channel: a
+"tag" is a typed definition or a part-type marker.
 
 ## Prebuilt-first is the contract
 

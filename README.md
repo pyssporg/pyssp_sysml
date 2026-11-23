@@ -487,7 +487,7 @@ equivalent as typed attribute containers. They are preserved by
 | --- | --- |
 | `Component/@implementation` | `part def <Part> :> FmuModel` with `attribute fmu_meta : <Part>FmuMetadata` carrying `implementation` |
 | Parameter connectors / bindings | `port def` interfaces, sets, `parameters` ports, and `bind` |
-| `DefaultExperiment` | `attribute defaults : <X>DefaultExperiment` with `startTime` / `stopTime` |
+| `DefaultExperiment` | `attribute defaults : <X>DefaultExperiment` (fields canonical in `pyssp_sysml_definitions/core.sysml`) |
 
 Flattening is an export option, not model data: `pyssp generate ssd
 --flat-connector` emits `signal` instead of `signal.value`. The same document
