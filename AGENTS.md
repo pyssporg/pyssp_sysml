@@ -95,7 +95,7 @@ library boundary; the CLI is the public surface for other projects.
 - Python >= 3.11.
 - Development: `python3 -m venv venv`, then `pip install -r
   requirements-dev.txt` and `pip install -e .`; this installs a sibling
-  `experimental_pyssp_standard` checkout when one is present.
+  `pyssp_standard_exp` checkout when one is present.
 - Tests: `./venv/bin/python -m pytest -q`; inspect the implementation first and
   prefer `rg` for search.
 - Lint: `ruff check src tests`; `pyproject.toml` holds the ruff configuration

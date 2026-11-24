@@ -20,7 +20,7 @@ pip install -e .
 
 `requirements-dev.txt` is a single `-e ".[dev]"` line. It installs the runtime
 dependencies from the release wheels pinned in `pyproject.toml`; to develop
-against the `experimental_pyssp_standard` sibling checkout, install that tree
+against the `pyssp_standard_exp` sibling checkout, install that tree
 editable after it as an override (the flat ecosystem workspace keeps it one
 level above this repository):
 
@@ -28,7 +28,7 @@ level above this repository):
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements-dev.txt
-python3 -m pip install -e ../experimental_pyssp_standard
+python3 -m pip install -e ../pyssp_standard_exp
 ```
 
 `pyproject.toml` declares two direct-URL wheels:

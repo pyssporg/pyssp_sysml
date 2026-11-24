@@ -50,7 +50,7 @@ pip install -r requirements-dev.txt
 ```
 
 This version depends on `pycps-sysml` (which owns the SysML dialect, IR, and
-parameter resolution) and on the refactored `experimental_pyssp_standard` model
+parameter resolution) and on the refactored `pyssp_standard_exp` model
 API (`SSD.xml`, `SSV.xml`, `Connector.type_name`). It does not use the older
 `common_content_ssc` type objects. `sysmlpy` is not a direct dependency:
 `pycps-sysml` pins `sysmlpy==0.96.4` itself. `requirements-dev.txt` is a
@@ -58,13 +58,13 @@ single `-e ".[dev]"` line: the runtime dependencies are the release wheels
 pinned in `pyproject.toml`, not a separate git reference.
 
 If you are working in the flat ecosystem workspace and want to install the
-`experimental_pyssp_standard` sibling checkout on top of that wheel:
+`pyssp_standard_exp` sibling checkout on top of that wheel:
 
 ```bash
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements-dev.txt
-pip install -e ../experimental_pyssp_standard
+pip install -e ../pyssp_standard_exp
 ```
 
 ## 2) Generate Artifacts (CLI)

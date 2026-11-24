@@ -4,12 +4,12 @@
 # and adds the dev extra; sibling versions are not re-listed here so they
 # cannot drift from the pyproject pins.
 #
-# To develop against the experimental_pyssp_standard working tree instead of
+# To develop against the pyssp_standard_exp working tree instead of
 # its wheel, install it as a sibling editable checkout from the flat ecosystem
 # workspace (pyssp_dev/repos/, i.e. one level above here) -- it overrides the
 # wheel after resolution:
 #
-#   python3 -m pip install -e ../experimental_pyssp_standard
+#   python3 -m pip install -e ../pyssp_standard_exp
 #
 # Adjust that path if your workspace layout differs.
 -e ".[dev]"
