@@ -38,7 +38,7 @@ If no SysML files are available yet, `pyssp generate sysml` can bootstrap a mini
 ## 1) Install
 
 ```bash
-pip install git+https://github.com/pyssporg/pyssp_sysml2
+pip install git+https://github.com/pyssporg/pyssp_sysml
 ```
 
 For local development:

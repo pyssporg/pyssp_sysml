@@ -52,7 +52,7 @@ jobs:
           # A direct URL renders as "name @ url"; assert the owner and the tag.
           assert any(
               r.startswith(
-                  "pycps-sysml2 @ https://github.com/pyssporg/pycps_sysml2/"
+                  "pycps-sysml2 @ https://github.com/pyssporg/pycps_sysml/"
                   "releases/download/v"
               )
               for r in requirements

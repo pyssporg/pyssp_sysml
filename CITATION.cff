@@ -12,7 +12,7 @@ authors:
 date-released: "2026-11-22"
 version: "0.6.1"
 license: "MIT"
-repository-code: "https://github.com/pyssporg/pyssp_sysml2"
+repository-code: "https://github.com/pyssporg/pyssp_sysml"
 keywords:
   - SysML v2
   - SSP
