@@ -39,7 +39,7 @@ are rejected). Do not add a plugin registry; the seam is the CLI plus files.
 pycps_sysml            dialect: parse, IR, markers, policies
   |-- pyfmi_interfaces      FMI artifacts
   `-- pyssp_sysml      SSP-family assembly
-FMU producers           pyfmu_csv, pyfmu_scenario, project builders
+FMU producers           pyfmi_csv, pyfmi_scenario, project builders
 orchestrators           pyssp_workflow, build scripts, CI
 ```
 
