@@ -3,7 +3,7 @@
 Input for the generator and CLI tests that opt into the bundled dialect core
 definitions: a model that uses `SspModel` without declaring it, so the default
 load leaves the marker unresolved and the opted-in load merges it from
-`pycps_sysml2.core_definitions()`.
+`pycps_sysml.core_definitions()`.
 
 ## Artifacts
 
@@ -15,7 +15,7 @@ load leaves the marker unresolved and the opted-in load merges it from
 
 The file has no local marker definitions and imports `PysspCore`, so
 `generate_ssd` fails with empty `includes` and succeeds once the caller passes
-`includes=[pycps_sysml2.core_definitions()]`. A CLI test proves
+`includes=[pycps_sysml.core_definitions()]`. A CLI test proves
 `--core-definitions` is accepted and forwarded as that include; another proves
 a repeated `--architecture` supplies a definition root directly, with the model
 importing that root's package.

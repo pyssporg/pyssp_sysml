@@ -1,20 +1,20 @@
 from __future__ import annotations
 
-from pycps_sysml2 import core_definitions
-from pycps_sysml2.parameters.policy import SSP_POLICY
+from pycps_sysml import core_definitions
+from pycps_sysml.parameters.policy import SSP_POLICY
 import re
 from pathlib import Path
 
 import pytest
 
-from pyssp_sysml2.parameters.dialect.composition import (
+from pyssp_sysml.parameters.dialect.composition import (
     has_parameter_dialect,
     parameter_bind,
 )
-from pyssp_sysml2.parameters.dialect.mapping import mapping_specs
-from pyssp_sysml2.artifacts.ssd import generate_ssd
-from pyssp_sysml2.artifacts.ssv import generate_parameter_sets
-from pyssp_sysml2.model import load
+from pyssp_sysml.parameters.dialect.mapping import mapping_specs
+from pyssp_sysml.artifacts.ssd import generate_ssd
+from pyssp_sysml.artifacts.ssv import generate_parameter_sets
+from pyssp_sysml.model import load
 from tests.fixture_files import render_fixture
 from tests.testhelpers import COMPOSITION_NAME, write_model
 

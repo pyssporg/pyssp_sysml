@@ -9,7 +9,7 @@ From the `pyssp_dev` workspace root, with the workspace venv active:
 
 ```bash
 pyssp generate analysis \
-  --architecture repos/pyssp_sysml2/examples/analysis \
+  --architecture repos/pyssp_sysml/examples/analysis \
   --composition test_baseline \
   --model position_servo \
   --core-definitions \
@@ -34,7 +34,7 @@ The second analysis differs only in its composition and scenario:
 
 ```bash
 pyssp generate analysis \
-  --architecture repos/pyssp_sysml2/examples/analysis \
+  --architecture repos/pyssp_sysml/examples/analysis \
   --composition test_aggressive \
   --model position_servo \
   --core-definitions \
@@ -45,7 +45,7 @@ pyssp generate analysis \
 
 ```bash
 pyssp generate ssd \
-  --architecture repos/pyssp_sysml2/examples/analysis \
+  --architecture repos/pyssp_sysml/examples/analysis \
   --composition PositionServo \
   --core-definitions \
   --output build/examples/analysis/PositionServo/SystemStructure.ssd

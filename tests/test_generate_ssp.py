@@ -7,8 +7,8 @@ from pathlib import Path
 import pytest
 from pyssp_standard import SSP, SSV
 
-from pyssp_sysml2.cli import main
-from pyssp_sysml2.artifacts.ssp import generate_ssp
+from pyssp_sysml.cli import main
+from pyssp_sysml.artifacts.ssp import generate_ssp
 from tests.fixture_files import fixture_path, fixture_text, render_fixture
 from tests.testhelpers import COMPOSITION_NAME, write_model
 

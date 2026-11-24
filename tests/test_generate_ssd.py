@@ -5,10 +5,10 @@ from pathlib import Path
 import pytest
 from pyssp_standard import SSD, System
 
-from pycps_sysml2 import core_definitions
-from pyssp_sysml2.artifacts.preflight import _expected_connector_names
-from pyssp_sysml2.artifacts.ssd import build_ssd, generate_ssd
-from pyssp_sysml2.model import load
+from pycps_sysml import core_definitions
+from pyssp_sysml.artifacts.preflight import _expected_connector_names
+from pyssp_sysml.artifacts.ssd import build_ssd, generate_ssd
+from pyssp_sysml.model import load
 from tests.fixture_files import fixture_path, fixture_text, render_fixture
 from tests.testhelpers import COMPOSITION_NAME, write_model
 

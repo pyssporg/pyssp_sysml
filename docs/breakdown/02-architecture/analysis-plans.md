@@ -11,7 +11,7 @@ status: current
 
 ## The three outcomes
 
-`pycps_sysml2` returns an `AnalysisPlan` per `Analysis`; this package consumes
+`pycps_sysml` returns an `AnalysisPlan` per `Analysis`; this package consumes
 it (`INFO-031`, `INFO-034`):
 
 - `legal`: the selection resolves and every asserted constraint passes;

@@ -33,10 +33,10 @@ python3 -m pip install -e ../experimental_pyssp_standard
 
 `pyproject.toml` declares two direct-URL wheels:
 
-- `pycps-sysml2` 0.4.0, which pins `sysmlpy==0.96.4` itself and depends on
+- `pycps-sysml` 0.4.0, which pins `sysmlpy==0.96.4` itself and depends on
   `pyssp-sysml-definitions`;
 - `experimental-pyssp-standard` 0.9.4.dev0.
 
 `sysmlpy` is no longer a direct dependency: this package never imports the
 grammar (`AD-004`). The editable install provides the `pyssp` console script.
-Without it, run `PYTHONPATH=src python3 -m pyssp_sysml2.cli`.
+Without it, run `PYTHONPATH=src python3 -m pyssp_sysml.cli`.

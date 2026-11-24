@@ -50,7 +50,7 @@ generated-SysML minimal convention and does not emit it, so a round-tripped body
 is captured on load but not re-emitted.
 
 - **Conversion:** SysML v2 text → `Architecture` through
-  `pyssp_sysml2.model.load`, then back to text through
+  `pyssp_sysml.model.load`, then back to text through
   `Architecture.export_declared` and `load` again.
 - **Requirement / fault:** a configuration binding must be captured on the
   model, never silently dropped to an anonymous usage with no target or value.

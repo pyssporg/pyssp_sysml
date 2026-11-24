@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from pycps_sysml2.metadata.roles import SSP_ROLES
+from pycps_sysml.metadata.roles import SSP_ROLES
 import json
 import re
 import zipfile
@@ -9,14 +9,14 @@ from pathlib import Path
 import pytest
 from pyssp_standard import SSD, SSP, SSV
 
-from pyssp_sysml2.cli import _parse_selections, main
-from pyssp_sysml2.artifacts.ssd import build_ssd, generate_ssd
-from pyssp_sysml2.artifacts.ssp import generate_ssp
-from pyssp_sysml2.artifacts.analysis import generate_analysis
-from pyssp_sysml2.sysml.sync import sync_sysml_from_ssd
-from pyssp_sysml2.sysml.generate import generate_sysml_from_ssd
-from pyssp_sysml2.model import load
-from pyssp_sysml2.parameters.variation import (
+from pyssp_sysml.cli import _parse_selections, main
+from pyssp_sysml.artifacts.ssd import build_ssd, generate_ssd
+from pyssp_sysml.artifacts.ssp import generate_ssp
+from pyssp_sysml.artifacts.analysis import generate_analysis
+from pyssp_sysml.sysml.sync import sync_sysml_from_ssd
+from pyssp_sysml.sysml.generate import generate_sysml_from_ssd
+from pyssp_sysml.model import load
+from pyssp_sysml.parameters.variation import (
     has_variation,
     resolve,
     resolve_selected,

@@ -6,9 +6,9 @@ from pathlib import Path
 
 import pytest
 
-from pyssp_sysml2.model import load
-from pyssp_sysml2.model.variation import variation_facts
-from pyssp_sysml2.parameters.variation import refuse_variation_erasure
+from pyssp_sysml.model import load
+from pyssp_sysml.model.variation import variation_facts
+from pyssp_sysml.parameters.variation import refuse_variation_erasure
 from tests.fixture_files import fixture_text
 from tests.testhelpers import write_model
 

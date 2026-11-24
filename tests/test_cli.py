@@ -6,10 +6,10 @@ from pathlib import Path
 import pytest
 from pyssp_standard import SSD
 
-from pycps_sysml2 import core_definitions
-from pyssp_sysml2 import cli
-from pyssp_sysml2.cli import main
-from pyssp_sysml2.artifacts.ssd import generate_ssd
+from pycps_sysml import core_definitions
+from pyssp_sysml import cli
+from pyssp_sysml.cli import main
+from pyssp_sysml.artifacts.ssd import generate_ssd
 from tests.fixture_files import fixture_text, render_fixture
 from tests.test_generate_ssd import _ssd_summary
 from tests.testhelpers import COMPOSITION_NAME, write_bootstrap_ssd, write_model

@@ -35,7 +35,7 @@ splitting it on the dot.
 `feed.X[1]` and `feed.X[2]`, not `feed.'X[1]'`.
 
 - **Conversion:** SysML v2 text → `Architecture` through
-  `pyssp_sysml2.model.load`, back to text through
+  `pyssp_sysml.model.load`, back to text through
   `Architecture.export_declared`, and to SSD through `generate_ssd`.
 - **Requirement / fault:** a quoted name must reach the artifact with its
   characters intact; a generator must never emit the quotes into an SSD name.

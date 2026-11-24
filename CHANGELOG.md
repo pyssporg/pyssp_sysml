@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   optional `fmu_meta.implementation` mismatch without writing an artifact. Its
   `--base-index` option checks parameter arrays against the indices the
   generator will emit.
-- `pyssp_sysml2.check_fmu_interfaces` compares every leaf component's expected
+- `pyssp_sysml.check_fmu_interfaces` compares every leaf component's expected
   SSD connector names with its FMU's `variable_names`, taking the same
   `base_index` as the generator.
 
@@ -31,7 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Pin the `pycps-sysml2` runtime dependency to the v0.4.0 release asset, which
+- Pin the `pycps-sysml` runtime dependency to the v0.4.0 release asset, which
   carries the new `pyssp-sysml-definitions` dependency.
 
 ## [0.5.0] - 2026-11-09

@@ -9,7 +9,7 @@ composition: three subsystems with connected signal ports and an applied
 From the `pyssp_dev` workspace root, with the workspace venv active:
 
 ```bash
-bash repos/pyssp_sysml2/examples/cli_usage.sh
+bash repos/pyssp_sysml/examples/cli_usage.sh
 ```
 
 | Artifact | Path |
@@ -32,7 +32,7 @@ SSD only:
 
 ```bash
 pyssp generate ssd \
-  --architecture repos/pyssp_sysml2/examples/aircraft_subset \
+  --architecture repos/pyssp_sysml/examples/aircraft_subset \
   --composition AircraftComposition \
   --core-definitions \
   --output build/examples/aircraft_subset/SystemStructure.ssd

@@ -23,9 +23,9 @@ Two FMI capabilities have no owner:
 
 - Decide whether `pyfmi_interfaces` extends its FMI 2.0 surface or a separate
   package owns ME and 3.0.
-- Keep the SSP side unchanged: `pyssp_sysml2` packages whatever `.fmu` file a
+- Keep the SSP side unchanged: `pyssp_sysml` packages whatever `.fmu` file a
   leaf declares, regardless of FMI version (`INFO-012`).
-- Do not reintroduce FMI emission into `pyssp_sysml2`; the boundary is
+- Do not reintroduce FMI emission into `pyssp_sysml`; the boundary is
   deliberate (`AD-004`, `INFO-031`).
 
 **Open questions.**

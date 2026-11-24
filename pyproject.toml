@@ -3,7 +3,7 @@ requires = ["setuptools>=69", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "pyssp_sysml2"
+name = "pyssp-sysml"
 dynamic = ["version"]
 description = "Generate SSP artifacts from a SysML v2 architecture model."
 readme = "README.md"
@@ -15,9 +15,9 @@ authors = [
 # Both dependencies are direct URLs, not index lookups: each URL is an
 # immutable release asset attached by that package's wheels.yml, its tag is
 # v<version>, and an unreleased tag makes the wheel uninstallable.
-#   pycps-sysml2      owns the SysML dialect, IR and parameter resolution.
+#   pycps-sysml      owns the SysML dialect, IR and parameter resolution.
 #   experimental-pyssp-standard owns the SSP XML object model.
-# sysmlpy is not a direct dependency any more: pycps-sysml2 pins ==0.96.4 and
+# sysmlpy is not a direct dependency any more: pycps-sysml pins ==0.96.4 and
 # this package never imports the grammar.
 dependencies = [
     "pycps-sysml2 @ https://github.com/pyssporg/pycps_sysml2/releases/download/v0.4.0/pycps_sysml2-0.4.0-py3-none-any.whl",
@@ -31,17 +31,17 @@ dev = [
 ]
 
 [project.scripts]
-pyssp = "pyssp_sysml2.cli:main"
+pyssp = "pyssp_sysml.cli:main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
 
 [tool.setuptools.dynamic]
-version = { attr = "pyssp_sysml2.__version__" }
+version = { attr = "pyssp_sysml.__version__" }
 
 [tool.setuptools.packages.find]
 where = ["src"]
-include = ["pyssp_sysml2*"]
+include = ["pyssp_sysml*"]
 
 [tool.ruff]
 # Lint selection is explicit so a ruff upgrade cannot change the gate.

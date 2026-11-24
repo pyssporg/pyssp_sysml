@@ -19,7 +19,7 @@ Not-yet-decided improvements. Current state is never restated here.
 - **IMP-006** [Variation points to one SSP per selection](sysml-variation-points-to-one-ssp-per-selection.md) — A declared variation should reach the artifact or fail the build; selection enters from outside and produces one SSP per selection.
 - **IMP-007** [Effective sets in application and disjointness](reuse-application.md) — A set usage sees all effective members, and disjointness is checked on effective targets rather than direct attributes.
 - **IMP-008** [Effective sets flattened into SSP](reuse-ssp-transfer.md) — One applied effective set produces one flat SSV, one SSD ParameterBinding, and no inheritance metadata in SSP.
-- **IMP-010** [Reuse adapter gap](reuse-adapter-gap.md) — pycps_sysml2 cannot yet represent inheritance or redefinition, so the reuse proposal needs model and exporter work there.
+- **IMP-010** [Reuse adapter gap](reuse-adapter-gap.md) — pycps_sysml cannot yet represent inheritance or redefinition, so the reuse proposal needs model and exporter work there.
 - **IMP-011** [Reuse open decisions](reuse-open-decisions.md) — Six choices remain open, and each has a recommended default before implementation starts.
 - **IMP-012** [Reuse contract forms: override, union, and conflict](reuse-contract-override-union.md) — Value override uses standard redefinition, multiple inheritance is a union, and a same-member conflict needs explicit redefinition.
 - **IMP-013** [Variation capture evidence](variation-capture-evidence.md) — The pinned parser drops variant members and usage-level flags, while the raw tree retains every variant member.

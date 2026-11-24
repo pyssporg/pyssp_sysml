@@ -11,7 +11,7 @@ status: current
 
 ## Loading and syntax rules
 
-`pycps_sysml2.load()` takes one primary model root plus any number of included
+`pycps_sysml.load()` takes one primary model root plus any number of included
 definition roots. The primary root is one `.sysml` file or a directory; its
 definitions keep their `source_file`, which matters for export and sync.
 Directory loading is:
@@ -48,13 +48,13 @@ SysML v2 syntax constraints:
   because they supply vocabulary. A model references a definition in another
   package through an explicit import, such as `private import PysspCore::*;`.
 
-The loaded `Architecture` is `pycps_sysml2`'s IR (`INFO-031`). The SSP wrappers
-load, select, and enforce constraints; `pyssp_sysml2.projection` converts it to
-parser-free records, and `pyssp_sysml2.emit` never sees it (`INFO-039`).
+The loaded `Architecture` is `pycps_sysml`'s IR (`INFO-031`). The SSP wrappers
+load, select, and enforce constraints; `pyssp_sysml.projection` converts it to
+parser-free records, and `pyssp_sysml.emit` never sees it (`INFO-039`).
 
-`pycps_sysml2.load(model, *includes)` merges shared dialect definitions; the
+`pycps_sysml.load(model, *includes)` merges shared dialect definitions; the
 generators expose that as keyword-only `includes`. The usual element is
-`pycps_sysml2.core_definitions()`, the packaged `definitions/core.sysml`
+`pycps_sysml.core_definitions()`, the packaged `definitions/core.sysml`
 (`package PysspCore`). It is opt-in: empty `includes` loads only the model's own
 declarations; included names are excluded from export, and
 `--core-definitions` adds this include after repeated `--architecture` roots.

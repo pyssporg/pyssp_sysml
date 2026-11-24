@@ -13,7 +13,7 @@ If `pyssp` is not found after install:
 
 ```bash
 pip install -e .
-python3 -m pyssp_sysml2.cli --help
+python3 -m pyssp_sysml.cli --help
 ```
 
 If dependency resolution from `requirements-dev.txt` fails, reinstall it with

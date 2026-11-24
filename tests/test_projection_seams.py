@@ -15,12 +15,12 @@ from pathlib import Path
 import pytest
 from pyssp_standard import SSD, SSM, SSV
 
-from pyssp_sysml2.emit.analysis import build_analysis
-from pyssp_sysml2.emit.ssd import build_ssd
-from pyssp_sysml2.emit.ssm import build_ssm
-from pyssp_sysml2.emit.ssp import build_ssp
-from pyssp_sysml2.emit.ssv import build_ssv
-from pyssp_sysml2.projection.model import (
+from pyssp_sysml.emit.analysis import build_analysis
+from pyssp_sysml.emit.ssd import build_ssd
+from pyssp_sysml.emit.ssm import build_ssm
+from pyssp_sysml.emit.ssp import build_ssp
+from pyssp_sysml.emit.ssv import build_ssv
+from pyssp_sysml.projection.model import (
     AnalysisModel,
     Attribute,
     AttributeDef,
@@ -35,7 +35,7 @@ from pyssp_sysml2.projection.model import (
 )
 
 PROJECT = Path(__file__).resolve().parents[1]
-EMIT = PROJECT / "src" / "pyssp_sysml2" / "emit"
+EMIT = PROJECT / "src" / "pyssp_sysml" / "emit"
 
 
 def _part_def() -> PartDef:
@@ -237,6 +237,6 @@ def test_emit_modules_import_no_parser() -> None:
             elif isinstance(node, ast.ImportFrom) and node.module:
                 names = [node.module]
             for name in names:
-                if name == "pycps_sysml2" or name.startswith("pycps_sysml2."):
+                if name == "pycps_sysml" or name.startswith("pycps_sysml."):
                     violations.append(f"{path.name}:{node.lineno} imports {name}")
     assert not violations, "emit must stay parser-free:\n" + "\n".join(violations)

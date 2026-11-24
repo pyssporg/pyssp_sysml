@@ -4,13 +4,13 @@ import json
 from pathlib import Path
 
 import pytest
-from pycps_sysml2 import core_definitions
+from pycps_sysml import core_definitions
 from pyssp_standard import SSV
 
-from pyssp_sysml2.artifacts.analysis import generate_analysis
-from pyssp_sysml2.model import load
-from pyssp_sysml2.model.exporter import export_declared
-from pyssp_sysml2.metadata.roles import is_ssp_model, is_analysis
+from pyssp_sysml.artifacts.analysis import generate_analysis
+from pyssp_sysml.model import load
+from pyssp_sysml.model.exporter import export_declared
+from pyssp_sysml.metadata.roles import is_ssp_model, is_analysis
 from tests.fixture_files import fixture_text
 
 
@@ -230,7 +230,7 @@ def test_generate_analysis_rejects_analysis_scenario_when_model_owns_one(
 
 
 def test_generate_ssd_emits_model_owned_parameter_binding(tmp_path: Path) -> None:
-    from pyssp_sysml2.artifacts.ssd import generate_ssd
+    from pyssp_sysml.artifacts.ssd import generate_ssd
 
     architecture = tmp_path / "model_owned.sysml"
     architecture.write_text(MODEL_OWNED_SCENARIO_ARCHITECTURE, encoding="utf-8")
@@ -244,7 +244,7 @@ def test_generate_ssd_emits_model_owned_parameter_binding(tmp_path: Path) -> Non
 
 
 def test_generate_ssp_rejects_analysis(tmp_path: Path) -> None:
-    from pyssp_sysml2.artifacts.ssp import generate_ssp
+    from pyssp_sysml.artifacts.ssp import generate_ssp
 
     architecture = _write_architecture(tmp_path)
     with pytest.raises(ValueError, match="Analysis"):

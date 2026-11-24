@@ -9,7 +9,7 @@ status: current
 
 # CLI usage
 
-The entry point in `pyproject.toml` is `pyssp = pyssp_sysml2.cli:main`.
+The entry point in `pyproject.toml` is `pyssp = pyssp_sysml.cli:main`.
 
 Subcommands:
 
@@ -34,7 +34,7 @@ an export option, never model data, so the same architecture exports both ways.
 repeatable `--architecture` flags. The first occurrence is the model root;
 every later one is an included definition root forwarded as `includes`.
 `--core-definitions` is sugar for one such include, adding
-`pycps_sysml2.core_definitions()`
+`pycps_sysml.core_definitions()`
 (`SspModel`, `Analysis`, `Experiment`, `ParameterInterface`, `ParameterSet`,
 `FmuMetadata`, `SspMetadata`) after any repeated `--architecture` roots. That
 function re-exports `pyssp_sysml_definitions.core_definitions()`, so the
@@ -44,7 +44,7 @@ must declare the markers it uses, and the example models import the vocabulary
 instead of declaring it.
 
 `pyssp validate` reports problems without writing an artifact. It runs the
-`pycps_sysml2` dialect validators, then compares every leaf component's expected
+`pycps_sysml` dialect validators, then compares every leaf component's expected
 SSD connector names with its FMU's `variable_names`, and optionally checks
 `fmu_meta.implementation` against `--implementation`:
 
@@ -64,16 +64,16 @@ OMC-built Modelica FMUs. Output is one line per check result:
 `PASS fmu-interfaces` or one `FAIL fmu-interfaces: <problem>` per problem, then
 `FAIL fmu-implementation: ...` when `--implementation` is given and violated.
 Any failure ends with `N check(s) failed` and exits 1; a clean model exits 0.
-The Python surface is `pyssp_sysml2.check_fmu_interfaces(architecture,
+The Python surface is `pyssp_sysml.check_fmu_interfaces(architecture,
 composition, fmu_root=None, *, base_index=0)`.
 
 `generate fmi` is gone. It prints an error naming `pyfmi_interfaces` and exits 1:
 
 ```text
-`generate fmi` was removed in pyssp_sysml2 0.4.0: FMI model descriptions
+`generate fmi` was removed in pyssp_sysml 0.4.0: FMI model descriptions
 now come from pyfmi_interfaces (install pyfmi-interfaces, then run
 `pyfmi model-description`).
 ```
 
 If `pyssp` is not installed as a console script, run the module:
-`PYTHONPATH=src python3 -m pyssp_sysml2.cli ...`.
+`PYTHONPATH=src python3 -m pyssp_sysml.cli ...`.

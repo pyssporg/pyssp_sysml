@@ -1,9 +1,9 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
-title: "pyssp_sysml2"
+title: "pyssp_sysml"
 abstract: >-
   Generate SSD, SSV, SSM, analysis, SSP, and SysML artifacts from a SysML v2
-  architecture or SSD. The SysML dialect comes from pycps_sysml2; FMI
+  architecture or SSD. The SysML dialect comes from pycps_sysml; FMI
   artifacts come from pyfmi_interfaces.
 authors:
   - name: "Erik Rosenlund"

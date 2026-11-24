@@ -21,5 +21,5 @@ The markers are recognized transitively for a parameter interface and
 direct-only for a parameter set. Inherited interface members are resolved and
 emitted; inherited set members are not flattened into the SSV (`IMP-001`).
 
-The markers are `pycps_sysml2`'s; this package consumes them (`INFO-031`) and
+The markers are `pycps_sysml`'s; this package consumes them (`INFO-031`) and
 emits the artifacts (`CP-001`).

@@ -22,7 +22,7 @@ case exists, which oracle proves it, and how the output may be normalized.
   mismatch), plus parsed structure through the facade for both the generated and
   the committed copy
 - **Normalization:** none; the writer is deterministic
-- **Volatile fields:** none. `guid` is `uuid5` of `pyssp_sysml2/<package>/<part>`,
+- **Volatile fields:** none. `guid` is `uuid5` of `pyssp_sysml/<package>/<part>`,
   not random.
 - **Update policy:** `UPDATE_GOLDENS=1`, read the diff, commit inputs and outputs
   together; refused when `CI` is set

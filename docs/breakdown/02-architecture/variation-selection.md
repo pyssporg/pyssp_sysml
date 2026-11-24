@@ -11,7 +11,7 @@ status: current
 
 ## Resolution before generation
 
-Resolution is `pycps_sysml2`'s; this package passes a selection and generates
+Resolution is `pycps_sysml`'s; this package passes a selection and generates
 from the resolved architecture (`INFO-033`).
 
 - A variation point is unresolved until a caller supplies a selection.

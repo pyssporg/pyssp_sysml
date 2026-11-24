@@ -13,7 +13,7 @@ Status: proposed, not implemented.
 
 **Phase A: model support.**
 
-- Add `Attribute.redefines: tuple[str, ...]` in `pycps_sysml2`.
+- Add `Attribute.redefines: tuple[str, ...]` in `pycps_sysml`.
 - Capture redefinition targets in the loader.
 - Emit `:>> Qualified::member` in the exporter.
 - Add load and export round-trip tests.

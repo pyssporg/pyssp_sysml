@@ -33,7 +33,7 @@ part def Composition {
 ```
 
 `generate ssd` reads the container with
-`pycps_sysml2.metadata.roles.read_experiment(..., required=False)` and writes
+`pycps_sysml.metadata.roles.read_experiment(..., required=False)` and writes
 `<ssd:DefaultExperiment startTime="0.0" stopTime="3600.0" />`; with no
 container it keeps the 0 and 3600 defaults. `generate sysml` synthesizes a
 local attribute def of this shape when the SSD carries an experiment.

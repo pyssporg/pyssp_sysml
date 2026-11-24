@@ -2,7 +2,7 @@
 id: INFO-029
 type: info
 title: Commitments
-summary: The invariants pyssp_sysml2 holds itself to at its borders and in the artifacts it emits.
+summary: The invariants pyssp_sysml holds itself to at its borders and in the artifacts it emits.
 date: 2026-11-05
 status: current
 ---
@@ -13,8 +13,8 @@ status: current
   SSP, SSD, SSV, or SSM artifact. A Python consumer uses only documented public
   functions; parser internals and schema bindings do not cross.
 - **The parser is delegated.** This package consumes a loaded `Architecture`
-  from `pycps_sysml2` and never imports `sysmlpy`; `sysmlpy` is not a direct
-  dependency because `pycps-sysml2` pins `==0.96.4` (`INFO-031`).
+  from `pycps_sysml` and never imports `sysmlpy`; `sysmlpy` is not a direct
+  dependency because `pycps-sysml` pins `==0.96.4` (`INFO-031`).
 - **Standard handling is delegated.** SSP XML objects come from
   `pyssp_standard`, at the SSP border only (`INFO-028`).
 - **Generated SysML is deliberately minimal.** Only SSD information with a

@@ -2,7 +2,7 @@
 id: INFO-037
 type: info
 title: FMU metadata
-summary: Typed FmuMetadata definitions name the built FMU; pyssp_sysml2 passes source and implementation through without interpreting FMI.
+summary: Typed FmuMetadata definitions name the built FMU; pyssp_sysml passes source and implementation through without interpreting FMI.
 date: 2026-11-05
 status: current
 ---
@@ -42,7 +42,7 @@ directly"); the schema is a base to specialize, not a container to use. A local
 same-name concrete usage shadows the inherited slot.
 
 Metadata is recognized by type, not by usage name, and is allowed only on leaf
-component definitions (`INFO-002`). `pycps_sysml2` supplies `FmuMetadata` and
+component definitions (`INFO-002`). `pycps_sysml` supplies `FmuMetadata` and
 its accessors; this package never interprets FMI semantics — it passes both
 fields through to the SSD and the archive.
 

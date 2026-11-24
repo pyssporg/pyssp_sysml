@@ -27,20 +27,20 @@ become. It is the first document to read, not a reference of last resort.
 
 ## Repository Focus
 
-`pyssp_sysml2` generates SSP artifacts (SSD, SSV, SSM, analysis descriptor,
+`pyssp_sysml` generates SSP artifacts (SSD, SSV, SSM, analysis descriptor,
 packaged SSP) and SysML from a SysML v2 architecture or an SSD, and syncs SSD
 wiring edits back into SysML. The interchange artifact (SSD/SSV/SSM/SSP) is the
 library boundary; the CLI is the public surface for other projects.
 
-- The SysML dialect, parser and IR belong to `pycps_sysml2`; this package
+- The SysML dialect, parser and IR belong to `pycps_sysml`; this package
   consumes them and never imports `sysmlpy`. FMI artifacts belong to
   `pyfmi_interfaces`.
-- Code lives under `src/pyssp_sysml2/`; `pyssp_sysml2.cli:main` is the `pyssp`
+- Code lives under `src/pyssp_sysml/`; `pyssp_sysml.cli:main` is the `pyssp`
   console script, and the package `__init__` is the public Python surface.
 - Current state, intent, and modeling conventions live in `docs/breakdown/`; the
   code is the source of truth when the two disagree.
 - Consumer layering (FMU producers and orchestrators) is documented in
-  `docs/building-on-pyssp-sysml2.md`; keep it in sync with the public surface.
+  `docs/building-on-pyssp-sysml.md`; keep it in sync with the public surface.
 - This is also a test and experiment repo: keep it easy to extend.
 
 ## Hard constraints
@@ -49,12 +49,12 @@ library boundary; the CLI is the public surface for other projects.
   SSD, SSV, SSM, or SSP artifact. A Python consumer uses only documented public
   functions; parser internals and schema bindings do not cross.
 - **The SysML dialect is not owned here.** Parsing, the IR, the marker roles,
-  the parameter dialect and selection resolution come from `pycps_sysml2`.
+  the parameter dialect and selection resolution come from `pycps_sysml`.
   Nothing under `src/` imports `sysmlpy`; `tests/test_module_layout.py` enforces
   both rules.
-- **The moved packages stay shims.** `pyssp_sysml2.{model,core,metadata,
-  parameters}` re-export `pycps_sysml2` and hold no logic; no removal release is
-  scheduled. New code imports `pycps_sysml2` directly.
+- **The moved packages stay shims.** `pyssp_sysml.{model,core,metadata,
+  parameters}` re-export `pycps_sysml` and hold no logic; no removal release is
+  scheduled. New code imports `pycps_sysml` directly.
 - **SSP XML object handling belongs to `pyssp_standard`.** Do not duplicate
   it.
 - **Generated SysML is deliberately minimal.** Only SSD information with a

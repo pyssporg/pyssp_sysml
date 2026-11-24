@@ -4,7 +4,7 @@ set -euo pipefail
 # Generate the aircraft example's SSD, parameter sets, bootstrap SysML, and
 # SSD-synced SysML through the pyssp CLI. Run from the pyssp_dev workspace root:
 #
-#   bash repos/pyssp_sysml2/examples/cli_usage.sh [--out DIR]
+#   bash repos/pyssp_sysml/examples/cli_usage.sh [--out DIR]
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 ARCH="$SCRIPT_DIR/aircraft_subset"

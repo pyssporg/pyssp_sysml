@@ -12,7 +12,7 @@ from pathlib import Path
 
 from pyssp_standard import SSD
 
-from pyssp_sysml2.artifacts.ssd import generate_ssd
+from pyssp_sysml.artifacts.ssd import generate_ssd
 from tests.fixture_files import fixture_text, render_fixture
 from tests.testhelpers import COMPOSITION_NAME, write_model
 

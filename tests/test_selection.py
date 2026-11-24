@@ -2,29 +2,29 @@
 
 from __future__ import annotations
 
-from pycps_sysml2.metadata.roles import SSP_ROLES
+from pycps_sysml.metadata.roles import SSP_ROLES
 import json
 import re
 from pathlib import Path
 
 import pytest
 
-from pyssp_sysml2.artifacts.analysis import generate_analysis
-from pyssp_sysml2.artifacts.ssd import generate_ssd
-from pyssp_sysml2.model import Architecture, load
-from pyssp_sysml2.parameters.configuration import (
+from pyssp_sysml.artifacts.analysis import generate_analysis
+from pyssp_sysml.artifacts.ssd import generate_ssd
+from pyssp_sysml.model import Architecture, load
+from pyssp_sysml.parameters.configuration import (
     configuration_name,
     derived_selection,
     model_root,
 )
-from pyssp_sysml2.parameters.selection import (
+from pyssp_sysml.parameters.selection import (
     AnalysisPlan,
     analysis_plans,
     analysis_selection,
     analysis_selections,
     parse_selection,
 )
-from pyssp_sysml2.parameters.variation import resolve_selected
+from pyssp_sysml.parameters.variation import resolve_selected
 from tests.fixture_files import fixture_text
 from tests.testhelpers import write_model
 

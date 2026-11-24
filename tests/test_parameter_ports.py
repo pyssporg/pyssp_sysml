@@ -3,19 +3,19 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-from pycps_sysml2 import core_definitions
+from pycps_sysml import core_definitions
 from pyssp_standard import SSD
 
-from pycps_sysml2.parameters.dialect.composition import validate_parameter_dialect
-from pycps_sysml2.parameters.policy import SSP_POLICY
-from pyssp_sysml2.parameters.dialect.declarations import (
+from pycps_sysml.parameters.dialect.composition import validate_parameter_dialect
+from pycps_sysml.parameters.policy import SSP_POLICY
+from pyssp_sysml.parameters.dialect.declarations import (
     parameter_declarations,
     parameter_interface,
 )
-from pyssp_sysml2.parameters.dialect.markers import validate_marker_definitions
-from pyssp_sysml2.parameters.synthesis.interfaces import ensure_component_interface
-from pyssp_sysml2.artifacts.ssd import generate_ssd
-from pyssp_sysml2.model import load
+from pyssp_sysml.parameters.dialect.markers import validate_marker_definitions
+from pyssp_sysml.parameters.synthesis.interfaces import ensure_component_interface
+from pyssp_sysml.artifacts.ssd import generate_ssd
+from pyssp_sysml.model import load
 from tests.fixture_files import render_fixture
 from tests.testhelpers import COMPOSITION_NAME, write_model
 

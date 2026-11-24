@@ -2,7 +2,7 @@
 id: INFO-033
 type: info
 title: Variation points
-summary: Variation definitions and usages carry variants and bodies captured as pycps_sysml2 dataclasses.
+summary: Variation definitions and usages carry variants and bodies captured as pycps_sysml dataclasses.
 date: 2026-11-05
 status: current
 ---
@@ -11,7 +11,7 @@ status: current
 
 ## Capturing variation
 
-Variation is captured by `pycps_sysml2` into its dataclasses; this package reads
+Variation is captured by `pycps_sysml` into its dataclasses; this package reads
 the resolved result (`INFO-040`).
 
 - A `variation part def` carries `is_variation`; its `variant` members sit in

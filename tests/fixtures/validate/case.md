@@ -29,7 +29,7 @@ Origin: authored for the `pyssp validate` `base_index` test in
 - **Level:** system.
 - **Input:** the two documents above.
 - **Expected:** none; the test asserts the report and exit code.
-- **Independent oracle:** `pycps_sysml2` parameter expansion and
+- **Independent oracle:** `pycps_sysml` parameter expansion and
   `pyssp_standard` `variable_names`.
 - **Comparison:** exact names in the failure text and the exit code.
 - **Normalization:** `write_model` strips the file and keeps one trailing newline.

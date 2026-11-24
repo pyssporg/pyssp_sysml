@@ -2,7 +2,7 @@
 id: IMP-010
 type: imp
 title: Reuse adapter gap
-summary: pycps_sysml2 cannot yet represent inheritance or redefinition, so the reuse proposal needs model and exporter work there.
+summary: pycps_sysml cannot yet represent inheritance or redefinition, so the reuse proposal needs model and exporter work there.
 date: 2026-11-05
 status: proposed
 ---
@@ -11,7 +11,7 @@ status: proposed
 
 Status: proposed, not implemented.
 
-The reuse proposal needs work in `pycps_sysml2`, which now owns the model:
+The reuse proposal needs work in `pycps_sysml`, which now owns the model:
 
 - `is_parameter_set()` and `is_parameter_interface()` check only direct
   `:> ParameterSet` and `:> ParameterInterface`; they are not transitive.

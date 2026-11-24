@@ -17,7 +17,7 @@ The SSD distinction is structural:
 - A `part def` with effective subparts becomes an `ssd:System`.
 - The part usage name becomes the SSD element name.
 - The part definition name determines the FMU source stem for a leaf.
-- Membership is the effective view (`pycps_sysml2.model.effective`): an
+- Membership is the effective view (`pycps_sysml.model.effective`): an
   inherited subpart or port counts exactly like a declared one.
 
 The definition name determines `resources/<Definition>.fmu` when the leaf

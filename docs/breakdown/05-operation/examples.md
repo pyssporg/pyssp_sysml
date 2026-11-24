@@ -12,14 +12,14 @@ status: current
 Run from the `pyssp_dev` workspace root; `--out` overrides the output directory.
 
 ```bash
-bash repos/pyssp_sysml2/examples/cli_usage.sh
-python repos/pyssp_sysml2/examples/module_usage.py
+bash repos/pyssp_sysml/examples/cli_usage.sh
+python repos/pyssp_sysml/examples/module_usage.py
 ```
 
 Each script defaults to `examples/aircraft_subset` and
 `AircraftComposition`, and writes under `build/examples/<script>`. Both supply the core
 definitions as an include root (`--core-definitions` on the CLI,
-`pycps_sysml2.core_definitions()` in the Python API), as do the per-example
+`pycps_sysml.core_definitions()` in the Python API), as do the per-example
 commands.
 
 The example models import the shared `PysspCore` vocabulary and never declare

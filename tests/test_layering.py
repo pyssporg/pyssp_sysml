@@ -122,7 +122,7 @@ def test_every_collected_test_declares_exactly_one_level(
 
 def test_the_version_has_one_source_of_truth() -> None:
     """``pyproject.toml`` reads the version from the package, not a copy."""
-    import pyssp_sysml2
+    import pyssp_sysml
 
     tomllib = pytest.importorskip("tomllib", reason="tomllib is Python 3.11+")
     project = tomllib.loads((PROJECT / "pyproject.toml").read_text(encoding="utf-8"))
@@ -130,6 +130,6 @@ def test_the_version_has_one_source_of_truth() -> None:
     assert "version" not in project["project"]
     assert project["project"]["dynamic"] == ["version"]
     assert project["tool"]["setuptools"]["dynamic"]["version"] == {
-        "attr": "pyssp_sysml2.__version__"
+        "attr": "pyssp_sysml.__version__"
     }
-    assert re.fullmatch(r"\d+\.\d+\.\d+", pyssp_sysml2.__version__)
+    assert re.fullmatch(r"\d+\.\d+\.\d+", pyssp_sysml.__version__)

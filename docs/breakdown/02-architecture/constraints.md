@@ -2,7 +2,7 @@
 id: INFO-034
 type: info
 title: Constraints
-summary: Constraint definitions and usages are captured and evaluated by pycps_sysml2 during selection.
+summary: Constraint definitions and usages are captured and evaluated by pycps_sysml during selection.
 date: 2026-11-05
 status: current
 ---
@@ -11,7 +11,7 @@ status: current
 
 ## Capture and evaluation
 
-Constraint capture and evaluation are `pycps_sysml2`'s (`INFO-031`); this package
+Constraint capture and evaluation are `pycps_sysml`'s (`INFO-031`); this package
 calls them with `SSP_POLICY` and consumes the verdict (`INFO-043`).
 
 - A package-level `constraint def` becomes a `ConstraintDefinition` with typed

@@ -1,6 +1,6 @@
-# Product Breakdown — pyssp_sysml2
+# Product Breakdown — pyssp_sysml
 
-Current-state systems-engineering record for `pyssp_sysml2`: why it exists, the
+Current-state systems-engineering record for `pyssp_sysml`: why it exists, the
 parameter dialect it promises, how generation is organized, what realizes it,
 and how it is verified and run.
 
@@ -9,7 +9,7 @@ and how it is verified and run.
 - `00-intent/` — why the package exists, its scope, commitments, and roles.
 - `01-product/` — the parameter-set dialect and its promises.
 - `02-architecture/` — structure, ports, metadata, selection, pipeline, sync.
-- `03-implementation/` — modules, artifact writers, and the pycps_sysml2
+- `03-implementation/` — modules, artifact writers, and the pycps_sysml
   dependency.
 - `04-verification/` — test strategy, validation rules, and diagnostics.
 - `05-operation/` — setup, CLI, examples, troubleshooting, authoring rules.

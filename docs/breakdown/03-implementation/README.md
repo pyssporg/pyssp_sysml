@@ -1,6 +1,6 @@
 ---
 title: Implementation
-summary: Modules, concrete artifact writers, the shim boundary, and the pycps_sysml2 dependency.
+summary: Modules, concrete artifact writers, the shim boundary, and the pycps_sysml dependency.
 ---
 
 # Implementation
@@ -12,7 +12,7 @@ compatibility shims left by the v0.4.0 split.
 
 <!-- pb:index:start -->
 <!-- GENERATED FILE — do not edit. Regenerate with pb-registers. -->
-- **INFO-008** [Module map](module-map.md) — pyssp_sysml2 keeps artifact writers and SSD-to-SysML synthesis; the dialect and IR are pycps_sysml2 shims removed in 0.5.0.
+- **INFO-008** [Module map](module-map.md) — pyssp_sysml keeps artifact writers and SSD-to-SysML synthesis; the dialect and IR are pycps_sysml shims removed in 0.5.0.
 - **INFO-009** [SSV artifact](ssv-artifact.md) — One SSV per applied set holds only valued members with flat expanded names; interface defaults are never copied.
 - **INFO-010** [SSD artifact](ssd-artifact.md) — generate ssd writes structure, sources, connections, and the default experiment without embedding values.
 - **INFO-012** [SSP packaging](ssp-packaging.md) — generate ssp packages the SSD, built FMUs, and applied SSVs into one deterministic archive.

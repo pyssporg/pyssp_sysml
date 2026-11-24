@@ -24,7 +24,7 @@ jobs:
           python-version: "3.12"
 
       - name: Build wheel
-        # The version is dynamic (attr = pyssp_sysml2.__version__), so the
+        # The version is dynamic (attr = pyssp_sysml.__version__), so the
         # artifact name is checked instead of being assumed.
         run: |
           python -m pip install --upgrade pip build
@@ -64,7 +64,7 @@ jobs:
               )
               for r in requirements
           ), requirements
-          # sysmlpy is owned by pycps-sysml2, not required directly here.
+          # sysmlpy is owned by pycps-sysml, not required directly here.
           assert not any(r.startswith("sysmlpy") for r in requirements), requirements
           print(wheel.name)
           PY

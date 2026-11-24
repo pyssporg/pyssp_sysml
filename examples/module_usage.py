@@ -2,7 +2,7 @@
 
 Run from the pyssp_dev workspace root:
 
-    python repos/pyssp_sysml2/examples/module_usage.py
+    python repos/pyssp_sysml/examples/module_usage.py
 
 Pass ``--out`` to change the artifact directory.
 """
@@ -12,15 +12,15 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-import pycps_sysml2
+import pycps_sysml
 
-from pyssp_sysml2.artifacts.ssd import generate_ssd
-from pyssp_sysml2.artifacts.ssv import generate_parameter_sets
-from pyssp_sysml2.sysml.sync import sync_sysml_from_ssd
+from pyssp_sysml.artifacts.ssd import generate_ssd
+from pyssp_sysml.artifacts.ssv import generate_parameter_sets
+from pyssp_sysml.sysml.sync import sync_sysml_from_ssd
 
-# The shared PysspCore vocabulary is an include root: pycps_sysml2 re-exports
+# The shared PysspCore vocabulary is an include root: pycps_sysml re-exports
 # pyssp_sysml_definitions; no .sysml file is copied into this repository.
-CORE_DEFINITIONS = (pycps_sysml2.core_definitions(),)
+CORE_DEFINITIONS = (pycps_sysml.core_definitions(),)
 ARCHITECTURE = Path(__file__).resolve().parent / "aircraft_subset"
 COMPOSITION = "AircraftComposition"
 

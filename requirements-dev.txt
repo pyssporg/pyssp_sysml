@@ -1,5 +1,5 @@
 # Development install for this repository. The runtime and sibling
-# dependencies (pycps-sysml2, experimental-pyssp-standard) are declared in
+# dependencies (pycps-sysml, experimental-pyssp-standard) are declared in
 # pyproject.toml as PEP 508 direct references, so this file delegates to it
 # and adds the dev extra; sibling versions are not re-listed here so they
 # cannot drift from the pyproject pins.

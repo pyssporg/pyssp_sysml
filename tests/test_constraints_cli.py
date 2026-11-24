@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from pyssp_sysml2.cli import main
+from pyssp_sysml.cli import main
 from tests.fixture_files import fixture_text
 from tests.testhelpers import write_model
 

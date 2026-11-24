@@ -9,13 +9,13 @@ from __future__ import annotations
 
 import pytest
 
-from pyssp_sysml2.model import (
+from pyssp_sysml.model import (
     Architecture,
     ConstraintUsage,
     PartDefinition,
     load,
 )
-from pyssp_sysml2.parameters.constraints import (
+from pyssp_sysml.parameters.constraints import (
     ConstraintReport,
     ConstraintResult,
     ConstraintViolation,

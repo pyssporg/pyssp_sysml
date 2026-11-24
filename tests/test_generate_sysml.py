@@ -5,11 +5,11 @@ from pathlib import Path
 import pytest
 from pyssp_standard import SSD, SSM, SSV
 
-from pycps_sysml2 import core_definitions
-from pycps_sysml2.metadata.roles import read_experiment
-from pyssp_sysml2.artifacts.ssd import generate_ssd
-from pyssp_sysml2.sysml.generate import generate_sysml_from_ssd
-from pyssp_sysml2.model import load
+from pycps_sysml import core_definitions
+from pycps_sysml.metadata.roles import read_experiment
+from pyssp_sysml.artifacts.ssd import generate_ssd
+from pyssp_sysml.sysml.generate import generate_sysml_from_ssd
+from pyssp_sysml.model import load
 from tests.fixture_files import assert_matches_fixture, fixture_text
 from tests.testhelpers import write_bootstrap_ssd
 

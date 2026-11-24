@@ -20,7 +20,7 @@ Generated and synced definitions are written to fixed files:
   `parameter_sets.sysml`.
 - Existing definitions stay in their original `source_file`.
 
-The exporter (`pycps_sysml2`) groups by `source_file`, so sync preserves an
+The exporter (`pycps_sysml`) groups by `source_file`, so sync preserves an
 existing multi-file layout instead of collapsing everything into one file.
 
 What lives in SysML and what is derived:

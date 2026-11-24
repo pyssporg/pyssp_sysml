@@ -2,14 +2,14 @@
 id: INFO-001
 type: info
 title: Intent
-summary: Why pyssp_sysml2 exists: it turns a SysML v2 architecture into SSP-family artifacts and back, and owns nothing else.
+summary: Why pyssp_sysml exists: it turns a SysML v2 architecture into SSP-family artifacts and back, and owns nothing else.
 date: 2026-11-05
 status: current
 ---
 
 # Intent
 
-`pyssp_sysml2` turns a SysML v2 architecture model into the standard artifacts a
+`pyssp_sysml` turns a SysML v2 architecture model into the standard artifacts a
 simulation workflow consumes, and turns those artifacts back into SysML. It owns
 SSP-family emission and the SSD-to-SysML direction; it does not parse SysML,
 generate FMI, run, or judge.

@@ -1,4 +1,4 @@
-# Test fixtures — pyssp_sysml2
+# Test fixtures — pyssp_sysml
 
 SysML inputs and expected artifacts live here. The test modules keep only the
 setup that makes each case different.

@@ -1,4 +1,4 @@
-# pyssp_sysml2
+# pyssp_sysml
 
 Generate SSD, SSV, SSM, analysis, SSP, and SysML artifacts from a SysML v2
 architecture or SSD.
@@ -8,7 +8,7 @@ SSP). The CLI is the public surface for other projects. When a Python consumer
 needs this package, it uses documented public functions only; parser internals
 and schema bindings do not cross.
 
-**Package split (0.4.0):** `pycps_sysml2` owns the SysML dialect, IR, and
+**Package split (0.4.0):** `pycps_sysml` owns the SysML dialect, IR, and
 parameter resolution; `pyfmi_interfaces` owns everything FMI; this package turns that
 IR into SSP-family artifacts and syncs SSD edits back into SysML.
 
@@ -49,11 +49,11 @@ source venv/bin/activate
 pip install -r requirements-dev.txt
 ```
 
-This version depends on `pycps-sysml2` (which owns the SysML dialect, IR, and
+This version depends on `pycps-sysml` (which owns the SysML dialect, IR, and
 parameter resolution) and on the refactored `experimental_pyssp_standard` model
 API (`SSD.xml`, `SSV.xml`, `Connector.type_name`). It does not use the older
 `common_content_ssc` type objects. `sysmlpy` is not a direct dependency:
-`pycps-sysml2` pins `sysmlpy==0.96.4` itself. `requirements-dev.txt` is a
+`pycps-sysml` pins `sysmlpy==0.96.4` itself. `requirements-dev.txt` is a
 single `-e ".[dev]"` line: the runtime dependencies are the release wheels
 pinned in `pyproject.toml`, not a separate git reference.
 
@@ -85,7 +85,7 @@ Common options for architecture-based subcommands (`ssp`, `ssd`, `ssv`, `ssm`,
   the model, later ones are included roots.
 - `--composition`: top-level part definition to generate from
 - `--core-definitions`: sugar for one include, adding
-  `pycps_sysml2.core_definitions()` to the definition roots (`SspModel`,
+  `pycps_sysml.core_definitions()` to the definition roots (`SspModel`,
   `Analysis`, `Experiment`, `ParameterInterface`, `ParameterSet`,
   `FmuMetadata`, `SspMetadata`). Off by default; without it a model must
   declare the markers it uses.
@@ -313,10 +313,10 @@ FMI generation left this package in 0.4.0. `pyssp generate fmi` is removed and
 prints this error (exit code 1):
 
 ```text
-[error] `generate fmi` was removed in pyssp_sysml2 0.4.0: FMI model descriptions now come from pyfmi_interfaces (install pyfmi-interfaces, then run `pyfmi model-description`).
+[error] `generate fmi` was removed in pyssp_sysml 0.4.0: FMI model descriptions now come from pyfmi_interfaces (install pyfmi-interfaces, then run `pyfmi model-description`).
 ```
 
-The Python API `generate_model_descriptions` is gone from `pyssp_sysml2` and its
+The Python API `generate_model_descriptions` is gone from `pyssp_sysml` and its
 `__all__`; it has no replacement in this package.
 
 Migration:
@@ -324,22 +324,22 @@ Migration:
 - Install the FMI implementer: `pip install pyfmi-interfaces`.
 - Replace `pyssp generate fmi --architecture ... --composition ... --output-dir ...`
   with `pyfmi model-description ...`.
-- Replace `from pyssp_sysml2.artifacts.fmi import generate_model_descriptions`
+- Replace `from pyssp_sysml.artifacts.fmi import generate_model_descriptions`
   with the corresponding `pyfmi_interfaces` API.
 
-SysML parsing and dialect ownership also moved: `pycps_sysml2` 0.1.0 owns the
+SysML parsing and dialect ownership also moved: `pycps_sysml` 0.1.0 owns the
 SysML IR and dialect — all `pyssp_*` control attributes, the `SspModel`,
 `Analysis`, `Experiment`, `SspMetadata`, `FmuMetadata`, `ParameterInterface`,
 and `ParameterSet` markers, and variation/configuration/selection/constraints.
-The compatibility shims `pyssp_sysml2.model`, `.core`, `.metadata`, and
-`.parameters` still import and only re-export `pycps_sysml2`; new code must
-import `pycps_sysml2` directly. No removal release is scheduled.
+The compatibility shims `pyssp_sysml.model`, `.core`, `.metadata`, and
+`.parameters` still import and only re-export `pycps_sysml`; new code must
+import `pycps_sysml` directly. No removal release is scheduled.
 
 ### FMU metadata
 
 Leaf component definitions can carry typed metadata for the built FMU. The
 schema is a normal `attribute def` hierarchy; the `FmuMetadata` marker role is
-defined by `pycps_sysml2`:
+defined by `pycps_sysml`:
 
 ```sysml
 attribute def FmuMetadata {
@@ -519,11 +519,11 @@ SSV values stay set values and are not promoted to interface defaults.
 ```python
 from pathlib import Path
 
-from pyssp_sysml2.artifacts.ssd import generate_ssd
-from pyssp_sysml2.artifacts.ssv import generate_parameter_sets, parameter_set_resource
-from pyssp_sysml2.artifacts.ssp import generate_ssp
-from pyssp_sysml2.sysml.generate import generate_sysml_from_ssd
-from pyssp_sysml2.sysml.sync import sync_sysml_from_ssd
+from pyssp_sysml.artifacts.ssd import generate_ssd
+from pyssp_sysml.artifacts.ssv import generate_parameter_sets, parameter_set_resource
+from pyssp_sysml.artifacts.ssp import generate_ssp
+from pyssp_sysml.sysml.generate import generate_sysml_from_ssd
+from pyssp_sysml.sysml.sync import sync_sysml_from_ssd
 
 architecture = Path("examples/aircraft_subset")
 composition = "AircraftComposition"
@@ -564,20 +564,20 @@ Every path-based generator (`generate_ssd`, `generate_parameter_sets`,
 roots merged into the loaded architecture:
 
 ```python
-import pycps_sysml2
+import pycps_sysml
 
 generate_ssd(
     architecture,
     Path("build/generated/SystemStructure.ssd"),
     composition,
-    includes=[pycps_sysml2.core_definitions()],
+    includes=[pycps_sysml.core_definitions()],
 )
 ```
 
 Ordering is the loader's: the architecture path is the primary model root, the
 sequence elements are included roots in the order given. `includes` is empty by
 default (only the model's own declarations load), and the core definitions
-belong to `pycps_sysml2`. On the CLI, `--core-definitions` is sugar for adding
+belong to `pycps_sysml`. On the CLI, `--core-definitions` is sugar for adding
 that one include.
 
 ## Runnable Examples
@@ -586,8 +586,8 @@ From the workspace root:
 
 ```bash
 # Ensure dependencies are installed first (see Install above).
-bash repos/pyssp_sysml2/examples/cli_usage.sh
-python repos/pyssp_sysml2/examples/module_usage.py
+bash repos/pyssp_sysml/examples/cli_usage.sh
+python repos/pyssp_sysml/examples/module_usage.py
 ```
 
 Both write under the gitignored `build/examples/<script>/`; `--out DIR`
@@ -616,7 +616,7 @@ pyssp validate --help
 If `pyssp` is not available on your shell path:
 
 ```bash
-PYTHONPATH=src python3 -m pyssp_sysml2.cli --help
+PYTHONPATH=src python3 -m pyssp_sysml.cli --help
 ```
 
 ## Outputs
@@ -644,7 +644,7 @@ Artifact purpose:
 
 | Symptom | Likely cause | Fix |
 |---|---|---|
-| `No module named pycps_sysml2` / `No module named pyssp_standard` | Dependencies not installed in current environment | Create/activate venv and run `pip install -r requirements-dev.txt && pip install -e .` |
+| `No module named pycps_sysml` / `No module named pyssp_standard` | Dependencies not installed in current environment | Create/activate venv and run `pip install -r requirements-dev.txt && pip install -e .` |
 | `[error] \`generate fmi\` was removed ...` | FMI generation moved to `pyfmi_interfaces` in 0.4.0 | `pip install pyfmi-interfaces` and run `pyfmi model-description ...` |
 | `[error] 'Part not found: ...'` | `--composition` does not match a part definition name | Use the correct top-level composition name |
 | `[error] No .sysml files found under ...` | Running an architecture-based generator without SysML files in `--architecture` | Provide SysML inputs first, or use `pyssp generate sysml --ssd ...` to bootstrap from SSD |
@@ -658,7 +658,7 @@ Artifact purpose:
 | `[error] ... exposes '...'` | `fmu_meta.implementation` disagrees with the FMU interface type | Set it to `CoSimulation` or `ModelExchange` to match the FMU |
 | `[error] ... pyssp_implementation is no longer supported` | Legacy FMU implementation control attribute | Move `implementation` into `attribute fmu_meta : <Part>FmuMetadata` |
 | `[error] ... pyssp_parameter_set is no longer supported` | Legacy external SSV pointer | Define sets in SysML and bind them to component usages |
-| `pyssp: command not found` | Console script not installed on PATH | Use `PYTHONPATH=src python3 -m pyssp_sysml2.cli ...` or `pip install -e .` |
+| `pyssp: command not found` | Console script not installed on PATH | Use `PYTHONPATH=src python3 -m pyssp_sysml.cli ...` or `pip install -e .` |
 
 ## Development
 
@@ -681,5 +681,5 @@ Project internals, test/reference behavior, and maintainer workflow are in:
 - [`docs/breakdown/README.md`](docs/breakdown/README.md) — current state: intent,
   parameter dialect, architecture, implementation, verification, operation, and
   evolution
-- [`docs/building-on-pyssp-sysml2.md`](docs/building-on-pyssp-sysml2.md) —
+- [`docs/building-on-pyssp-sysml.md`](docs/building-on-pyssp-sysml.md) —
   layering contract for libraries that build FMUs before `generate ssp`

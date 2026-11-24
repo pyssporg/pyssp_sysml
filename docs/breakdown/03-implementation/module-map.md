@@ -2,18 +2,18 @@
 id: INFO-008
 type: info
 title: Module map
-summary: pyssp_sysml2 keeps artifact wrappers, parser-free emitters, the projection stage, and SSD-to-SysML synthesis; the dialect and IR are pycps_sysml2 shims.
+summary: pyssp_sysml keeps artifact wrappers, parser-free emitters, the projection stage, and SSD-to-SysML synthesis; the dialect and IR are pycps_sysml shims.
 date: 2026-11-05
 status: current
 ---
 
 # Module map
 
-`src/pyssp_sysml2/` is an SSP-artifact package. The package root exposes only
+`src/pyssp_sysml/` is an SSP-artifact package. The package root exposes only
 `__init__.py` and `cli.py`.
 
 ```text
-src/pyssp_sysml2/
+src/pyssp_sysml/
 ├── __init__.py      canonical public surface: 8 generator functions plus check_fmu_interfaces
 ├── cli.py           `pyssp` entrypoint
 ├── artifacts/       analysis.py preflight.py ssd.py ssm.py ssp.py ssv.py
@@ -27,7 +27,7 @@ src/pyssp_sysml2/
 ```
 
 The dialect, IR, names, exporter, variation, markers, parameter resolution,
-selection, constraints, and role/dialect policies belong to `pycps_sysml2`
+selection, constraints, and role/dialect policies belong to `pycps_sysml`
 0.4.0, which pins `sysmlpy==0.96.4` itself (`INFO-031`, `AD-004`).
 
 Only two regions below the moved packages still hold code:
@@ -38,12 +38,12 @@ Only two regions below the moved packages still hold code:
   helper. `generation.py` holds `synthesize_parameter_dialect`.
 
 Every other module below `model/`, `core/`, `metadata/`, and `parameters/` is a
-re-export shim naming its `pycps_sysml2` owner. The shims keep old
-`pyssp_sysml2.<package>` imports working; no removal release is scheduled.
+re-export shim naming its `pycps_sysml` owner. The shims keep old
+`pyssp_sysml.<package>` imports working; no removal release is scheduled.
 `tests/test_module_layout.py` ratchets them to a docstring plus one import and
 is the static gate (`TEST-002`).
 
-Dependencies are two direct-URL wheels: `pycps-sysml2` 0.4.0 and
+Dependencies are two direct-URL wheels: `pycps-sysml` 0.4.0 and
 `experimental-pyssp-standard` (`INFO-020`). `sysmlpy` is transitive, never
 imported here.
 
@@ -51,7 +51,7 @@ Public functions: `build_ssd`, `generate_ssd`, `generate_parameter_sets`,
 `generate_parameter_mappings`, `generate_analysis`, `generate_ssp`,
 `generate_sysml_from_ssd`, `sync_sysml_from_ssd`, and
 `check_fmu_interfaces`. Each path-based generator takes keyword-only `includes`
-for `pycps_sysml2.load(model, *includes)`; an empty sequence is the default and
+for `pycps_sysml.load(model, *includes)`; an empty sequence is the default and
 `--core-definitions` is off (`INFO-032`, `INFO-021`). `emit/fmu_resources.py`
 owns the shared FMU source resolution that `ssp.py` and
 `artifacts/preflight.py` use; preflight holds the read-only interface check

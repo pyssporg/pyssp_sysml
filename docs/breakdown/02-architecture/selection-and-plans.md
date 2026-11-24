@@ -2,7 +2,7 @@
 id: INFO-027
 type: info
 title: Selection and configuration
-summary: An analysis composes a model-level SysML v2 configuration, and pycps_sysml2 derives the variant selection from its bindings.
+summary: An analysis composes a model-level SysML v2 configuration, and pycps_sysml derives the variant selection from its bindings.
 date: 2026-11-05
 status: current
 ---
@@ -34,7 +34,7 @@ that local usage, and the local usage's body binds the inner point. An
 analysis-local attribute point carries its own value
 (`attribute scenario : ScenarioChoice = ScenarioChoice::nominalK3;`).
 
-`pycps_sysml2` derives the selection from the configuration (`INFO-031`):
+`pycps_sysml` derives the selection from the configuration (`INFO-031`):
 
 - `model_root` walks single-parent specialisation from the composed definition
   to the outermost composition before the `SspModel` marker.

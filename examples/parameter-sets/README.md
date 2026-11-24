@@ -14,13 +14,13 @@ identity model is the smallest path:
 
 ```bash
 pyssp generate ssv \
-  --architecture repos/pyssp_sysml2/examples/parameter-sets/identity \
+  --architecture repos/pyssp_sysml/examples/parameter-sets/identity \
   --composition IdentityComposition \
   --core-definitions \
   --output-dir build/examples/parameter-sets/identity/parameter_sets
 
 pyssp generate ssd \
-  --architecture repos/pyssp_sysml2/examples/parameter-sets/identity \
+  --architecture repos/pyssp_sysml/examples/parameter-sets/identity \
   --composition IdentityComposition \
   --core-definitions \
   --output build/examples/parameter-sets/identity/SystemStructure.ssd
@@ -44,19 +44,19 @@ Different set and interface names, plus an SSM:
 
 ```bash
 pyssp generate ssv \
-  --architecture repos/pyssp_sysml2/examples/parameter-sets/explicit \
+  --architecture repos/pyssp_sysml/examples/parameter-sets/explicit \
   --composition ExplicitComposition \
   --core-definitions \
   --output-dir build/examples/parameter-sets/explicit/parameter_sets
 
 pyssp generate ssd \
-  --architecture repos/pyssp_sysml2/examples/parameter-sets/explicit \
+  --architecture repos/pyssp_sysml/examples/parameter-sets/explicit \
   --composition ExplicitComposition \
   --core-definitions \
   --output build/examples/parameter-sets/explicit/SystemStructure.ssd
 
 pyssp generate ssm \
-  --architecture repos/pyssp_sysml2/examples/parameter-sets/explicit \
+  --architecture repos/pyssp_sysml/examples/parameter-sets/explicit \
   --composition ExplicitComposition \
   --core-definitions \
   --output-dir build/examples/parameter-sets/explicit/parameter_mappings
@@ -71,13 +71,13 @@ Two sets applied to one component:
 
 ```bash
 pyssp generate ssv \
-  --architecture repos/pyssp_sysml2/examples/parameter-sets/multiple \
+  --architecture repos/pyssp_sysml/examples/parameter-sets/multiple \
   --composition MultipleSetComposition \
   --core-definitions \
   --output-dir build/examples/parameter-sets/multiple/parameter_sets
 
 pyssp generate ssd \
-  --architecture repos/pyssp_sysml2/examples/parameter-sets/multiple \
+  --architecture repos/pyssp_sysml/examples/parameter-sets/multiple \
   --composition MultipleSetComposition \
   --core-definitions \
   --output build/examples/parameter-sets/multiple/SystemStructure.ssd
@@ -92,13 +92,13 @@ A set applied to a nested component path, then regenerated SysML from the SSD:
 
 ```bash
 pyssp generate ssv \
-  --architecture repos/pyssp_sysml2/examples/parameter-sets/nested \
+  --architecture repos/pyssp_sysml/examples/parameter-sets/nested \
   --composition NestedPathComposition \
   --core-definitions \
   --output-dir build/examples/parameter-sets/nested/parameter_sets
 
 pyssp generate ssd \
-  --architecture repos/pyssp_sysml2/examples/parameter-sets/nested \
+  --architecture repos/pyssp_sysml/examples/parameter-sets/nested \
   --composition NestedPathComposition \
   --core-definitions \
   --output build/examples/parameter-sets/nested/SystemStructure.ssd

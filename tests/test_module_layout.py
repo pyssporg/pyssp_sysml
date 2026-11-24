@@ -14,7 +14,7 @@ import re
 from pathlib import Path
 
 PROJECT = Path(__file__).resolve().parents[1]
-PACKAGE = PROJECT / "src" / "pyssp_sysml2"
+PACKAGE = PROJECT / "src" / "pyssp_sysml"
 
 #: The documented public surface. Nothing else may sit at the package root.
 ROOT_MODULES = frozenset({"__init__.py", "cli.py"})
@@ -33,34 +33,34 @@ SUBPACKAGES = frozenset(
     }
 )
 
-#: Compatibility shims so `pyssp_sysml2.<pkg>` imports still resolve. Each
-#: maps to the :mod:`pycps_sysml2` module it re-exports; no removal release is
+#: Compatibility shims so `pyssp_sysml.<pkg>` imports still resolve. Each
+#: maps to the :mod:`pycps_sysml` module it re-exports; no removal release is
 #: scheduled.
 SHIM_MODULES: dict[str, str] = {
-    "model/__init__.py": "pycps_sysml2.model",
-    "model/exporter.py": "pycps_sysml2.model.exporter",
-    "model/loader.py": "pycps_sysml2.model.loader",
-    "model/model.py": "pycps_sysml2.model.model",
-    "model/names.py": "pycps_sysml2.model.names",
-    "model/parser.py": "pycps_sysml2.model.parser",
-    "model/variation.py": "pycps_sysml2.model.variation",
-    "core/__init__.py": "pycps_sysml2.core",
-    "core/control.py": "pycps_sysml2.core.control",
-    "core/fmi_helpers.py": "pycps_sysml2.core.fmi_helpers",
-    "metadata/__init__.py": "pycps_sysml2.metadata",
-    "metadata/fmu_metadata.py": "pycps_sysml2.metadata.fmu_metadata",
-    "metadata/roles.py": "pycps_sysml2.metadata.roles",
-    "metadata/ssp_metadata.py": "pycps_sysml2.metadata.ssp_metadata",
-    "parameters/__init__.py": "pycps_sysml2.parameters",
-    "parameters/configuration.py": "pycps_sysml2.parameters.configuration",
-    "parameters/constraints.py": "pycps_sysml2.parameters.constraints",
-    "parameters/selection.py": "pycps_sysml2.parameters.selection",
-    "parameters/variation.py": "pycps_sysml2.parameters.variation",
-    "parameters/dialect/__init__.py": "pycps_sysml2.parameters.dialect",
-    "parameters/dialect/composition.py": "pycps_sysml2.parameters.dialect.composition",
-    "parameters/dialect/declarations.py": "pycps_sysml2.parameters.dialect.declarations",
-    "parameters/dialect/mapping.py": "pycps_sysml2.parameters.dialect.mapping",
-    "parameters/dialect/markers.py": "pycps_sysml2.parameters.dialect.markers",
+    "model/__init__.py": "pycps_sysml.model",
+    "model/exporter.py": "pycps_sysml.model.exporter",
+    "model/loader.py": "pycps_sysml.model.loader",
+    "model/model.py": "pycps_sysml.model.model",
+    "model/names.py": "pycps_sysml.model.names",
+    "model/parser.py": "pycps_sysml.model.parser",
+    "model/variation.py": "pycps_sysml.model.variation",
+    "core/__init__.py": "pycps_sysml.core",
+    "core/control.py": "pycps_sysml.core.control",
+    "core/fmi_helpers.py": "pycps_sysml.core.fmi_helpers",
+    "metadata/__init__.py": "pycps_sysml.metadata",
+    "metadata/fmu_metadata.py": "pycps_sysml.metadata.fmu_metadata",
+    "metadata/roles.py": "pycps_sysml.metadata.roles",
+    "metadata/ssp_metadata.py": "pycps_sysml.metadata.ssp_metadata",
+    "parameters/__init__.py": "pycps_sysml.parameters",
+    "parameters/configuration.py": "pycps_sysml.parameters.configuration",
+    "parameters/constraints.py": "pycps_sysml.parameters.constraints",
+    "parameters/selection.py": "pycps_sysml.parameters.selection",
+    "parameters/variation.py": "pycps_sysml.parameters.variation",
+    "parameters/dialect/__init__.py": "pycps_sysml.parameters.dialect",
+    "parameters/dialect/composition.py": "pycps_sysml.parameters.dialect.composition",
+    "parameters/dialect/declarations.py": "pycps_sysml.parameters.dialect.declarations",
+    "parameters/dialect/mapping.py": "pycps_sysml.parameters.dialect.mapping",
+    "parameters/dialect/markers.py": "pycps_sysml.parameters.dialect.markers",
 }
 
 #: The shimmed packages. Everything below them is a shim except the listed
@@ -69,13 +69,13 @@ SHIMMED_PACKAGES = ("model", "core", "metadata", "parameters")
 SHIM_SURVIVORS = frozenset({"core/paths.py"})
 SHIM_SURVIVOR_PREFIXES = ("parameters/synthesis/",)
 
-#: The external parser moved to ``pycps_sysml2``; nothing here may import it.
+#: The external parser moved to ``pycps_sysml``; nothing here may import it.
 SYMLPY_IMPORT = re.compile(r"\s*(?:import|from)\s+sysmlpy\b")
 
-#: Imports that must now name ``pycps_sysml2`` directly instead of this
+#: Imports that must now name ``pycps_sysml`` directly instead of this
 #: package's shims. ``core.paths`` and ``parameters.synthesis`` stay local.
 SHIM_IMPORT = re.compile(
-    r"^\s*from\s+pyssp_sysml2\.(?P<pkg>model|metadata|parameters|core)"
+    r"^\s*from\s+pyssp_sysml\.(?P<pkg>model|metadata|parameters|core)"
     r"(?:\.(?P<sub>[A-Za-z_][\w.]*))?\s+import\b"
 )
 
@@ -89,7 +89,7 @@ LARGE_MODULES: dict[str, str] = {
 #: The parameters package deliberately has no flat re-export surface; callers
 #: import the precise layer. A shim would undo the split silently.
 PARAMETERS_FLAT_IMPORT = re.compile(
-    r"^\s*from\s+(?:pyssp_sysml2\.|\.+)?parameters(?:\.(?:dialect|synthesis))?\s+import\b"
+    r"^\s*from\s+(?:pyssp_sysml\.|\.+)?parameters(?:\.(?:dialect|synthesis))?\s+import\b"
 )
 
 
@@ -158,7 +158,7 @@ def test_every_subpackage_has_an_init():
 
 
 def test_no_module_imports_sysmlpy_directly():
-    """The parser lives in ``pycps_sysml2``; this package never sees the grammar."""
+    """The parser lives in ``pycps_sysml``; this package never sees the grammar."""
     violations = []
     for path in sorted(PACKAGE.rglob("*.py")):
         for lineno, line in enumerate(
@@ -167,7 +167,7 @@ def test_no_module_imports_sysmlpy_directly():
             if SYMLPY_IMPORT.match(line):
                 violations.append(f"{path.relative_to(PACKAGE)}:{lineno}")
     assert not violations, (
-        "sysmlpy is owned by pycps_sysml2; found a direct import:\n"
+        "sysmlpy is owned by pycps_sysml; found a direct import:\n"
         + "\n".join(violations)
     )
 
@@ -183,7 +183,7 @@ def test_only_shims_remain_in_the_moved_packages():
         unexpected.append(relative)
     assert not unexpected, (
         "a module below a shimmed package still holds logic; move it to "
-        "pycps_sysml2 or add it to SHIM_SURVIVORS:\n" + "\n".join(unexpected)
+        "pycps_sysml or add it to SHIM_SURVIVORS:\n" + "\n".join(unexpected)
     )
 
 
@@ -213,7 +213,7 @@ def test_shims_only_re_export():
 
 
 def test_src_imports_pycps_not_the_shims():
-    """Only the shims may name the moved packages; real code uses pycps_sysml2."""
+    """Only the shims may name the moved packages; real code uses pycps_sysml."""
     violations = []
     for path in sorted((PACKAGE).rglob("*.py")):
         relative = str(path.relative_to(PACKAGE))
@@ -231,9 +231,9 @@ def test_src_imports_pycps_not_the_shims():
                 continue
             if package == "parameters" and sub.startswith("synthesis"):
                 continue
-            violations.append(f"{relative}:{lineno} imports pyssp_sysml2.{package}")
+            violations.append(f"{relative}:{lineno} imports pyssp_sysml.{package}")
     assert not violations, (
-        "import the owner directly (pycps_sysml2); only shims may use the "
+        "import the owner directly (pycps_sysml); only shims may use the "
         "compatibility path:\n" + "\n".join(violations)
     )
 
@@ -265,7 +265,7 @@ def test_large_module_entries_are_real_and_explained():
 
 
 def test_parameters_is_imported_by_the_precise_layer():
-    """No flat ``pyssp_sysml2.parameters`` import: a shim would hide the split."""
+    """No flat ``pyssp_sysml.parameters`` import: a shim would hide the split."""
     violations = []
     for root in (PACKAGE, PROJECT / "tests"):
         for path in sorted(root.rglob("*.py")):

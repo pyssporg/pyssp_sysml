@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from pyssp_sysml2.cli import main
+from pyssp_sysml.cli import main
 from tests.fixture_files import fixture_text
 from tests.test_generate_ssp import (
     _build_fmu,

@@ -6,12 +6,12 @@ from pathlib import Path
 
 from pyssp_standard import Component, SSD, System
 
-from pycps_sysml2 import core_definitions
-from pyssp_sysml2.artifacts.ssd import generate_ssd
-from pyssp_sysml2.artifacts.ssm import generate_parameter_mappings
-from pyssp_sysml2.artifacts.ssv import generate_parameter_sets
-from pyssp_sysml2.sysml.generate import generate_sysml_from_ssd
-from pyssp_sysml2.model import load
+from pycps_sysml import core_definitions
+from pyssp_sysml.artifacts.ssd import generate_ssd
+from pyssp_sysml.artifacts.ssm import generate_parameter_mappings
+from pyssp_sysml.artifacts.ssv import generate_parameter_sets
+from pyssp_sysml.sysml.generate import generate_sysml_from_ssd
+from pyssp_sysml.model import load
 from tests.fixture_files import fixture_text
 from tests.testhelpers import write_model
 

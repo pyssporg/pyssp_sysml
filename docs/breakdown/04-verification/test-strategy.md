@@ -18,7 +18,7 @@ Run:
 ## Ownership and fixtures
 
 - Parser, model, variation, and selection behaviour is verified in
-  `pycps_sysml2`; this repository verifies its artifact writers and the
+  `pycps_sysml`; this repository verifies its artifact writers and the
   SSD-to-SysML round trip.
 - `test_parameter_sets.py` covers SSV and SSM output, SSD parameter output,
   identity bindings, multiple disjoint sets, and dialect validation.

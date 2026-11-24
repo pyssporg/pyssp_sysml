@@ -4,13 +4,13 @@ import json
 from pathlib import Path
 
 import pytest
-from pycps_sysml2 import core_definitions
+from pycps_sysml import core_definitions
 
-from pyssp_sysml2.artifacts.ssd import generate_ssd
-from pyssp_sysml2.artifacts.ssp import generate_ssp
-from pyssp_sysml2.metadata.ssp_metadata import ssp_metadata
-from pyssp_sysml2.artifacts.analysis import generate_analysis
-from pyssp_sysml2.model import load
+from pyssp_sysml.artifacts.ssd import generate_ssd
+from pyssp_sysml.artifacts.ssp import generate_ssp
+from pyssp_sysml.metadata.ssp_metadata import ssp_metadata
+from pyssp_sysml.artifacts.analysis import generate_analysis
+from pyssp_sysml.model import load
 
 from tests.fixture_files import fixture_text
 

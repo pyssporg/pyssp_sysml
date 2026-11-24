@@ -6,7 +6,7 @@ becomes an SSD, SSV, SSM, analysis descriptor, or packaged SSP.
 The examples import the shared `PysspCore` vocabulary in the files that use it
 (`private import PysspCore::*;`) and supply it as an include root: CLI commands
 pass `--core-definitions`, and Python callers pass
-`pycps_sysml2.core_definitions()` in `includes`. That function re-exports
+`pycps_sysml.core_definitions()` in `includes`. That function re-exports
 `pyssp_sysml_definitions.core_definitions()`, so no `.sysml` vocabulary file is
 copied into this repository. The role contract is stated once in
 [`docs/roles.md`](../../pyssp_sysml_definitions/docs/roles.md); this page does
@@ -17,8 +17,8 @@ not repeat it.
 From the `pyssp_dev` workspace root, with the workspace venv active:
 
 ```bash
-bash repos/pyssp_sysml2/examples/cli_usage.sh
-python repos/pyssp_sysml2/examples/module_usage.py
+bash repos/pyssp_sysml/examples/cli_usage.sh
+python repos/pyssp_sysml/examples/module_usage.py
 ```
 
 Both resolve their inputs from their own location, so the working directory does
@@ -63,7 +63,7 @@ build/examples/module_usage/synced_sysml/requirements.sysml
 ## Setup
 
 Activate the workspace venv (this checkout: `source ../venv/bin/activate`); the
-`pyssp` console script and the `pyssp_sysml2` import come from the editable
+`pyssp` console script and the `pyssp_sysml` import come from the editable
 install described in the workspace `README.md`.
 
 Each example directory states its own commands and expected files; the full

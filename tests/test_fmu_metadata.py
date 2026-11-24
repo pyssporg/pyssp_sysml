@@ -3,18 +3,18 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-from pycps_sysml2 import core_definitions
+from pycps_sysml import core_definitions
 from pyssp_standard import SSD
 
-from pyssp_sysml2.metadata.fmu_metadata import (
+from pyssp_sysml.metadata.fmu_metadata import (
     FmuMetadata,
     component_source,
     fmu_metadata,
 )
-from pyssp_sysml2.artifacts.ssd import generate_ssd
-from pyssp_sysml2.sysml.sync import sync_sysml_from_ssd
-from pyssp_sysml2.sysml.generate import generate_sysml_from_ssd
-from pyssp_sysml2.model import load
+from pyssp_sysml.artifacts.ssd import generate_ssd
+from pyssp_sysml.sysml.sync import sync_sysml_from_ssd
+from pyssp_sysml.sysml.generate import generate_sysml_from_ssd
+from pyssp_sysml.model import load
 from tests.fixture_files import render_fixture
 from tests.testhelpers import COMPOSITION_NAME, write_model
 

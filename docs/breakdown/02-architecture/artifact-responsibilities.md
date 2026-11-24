@@ -28,12 +28,12 @@ status: current
 - **SysML from SSD**: source is SSD plus referenced SSV/SSM. Contains a
   synthesized model, sets, interfaces, and binds (`INFO-038`).
 
-**Emission seams.** Each artifact has one `pyssp_sysml2.emit.build_*` function
+**Emission seams.** Each artifact has one `pyssp_sysml.emit.build_*` function
 that accepts parser-free projection records: `ssd.build_ssd`, `ssv.build_ssv`,
 `ssm.build_ssm`, `ssp.build_ssp`, and `analysis.build_analysis`. The matching
 `artifacts/*.generate_*` function owns loading, selection, constraint
 enforcement, and one projection call. No module in `emit` imports
-`pycps_sysml2`. `artifacts.ssd.build_ssd` keeps its legacy
+`pycps_sysml`. `artifacts.ssd.build_ssd` keeps its legacy
 `(ssd, part_def, architecture)` signature as a thin projecting adapter.
 
 The FMI model description is `pyfmi_interfaces`'s; it reads the same interface and

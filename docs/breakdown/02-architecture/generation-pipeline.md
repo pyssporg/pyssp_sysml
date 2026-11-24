@@ -13,13 +13,13 @@ status: current
 
 The SSP direction has five stages, each with one owner:
 
-1. **Load**: `pycps_sysml2.load()` produces an `Architecture` (`INFO-032`).
+1. **Load**: `pycps_sysml.load()` produces an `Architecture` (`INFO-032`).
 2. **Select and resolve**: the composition wrapper applies variation selection
    and the model-level configuration. Selection belongs here, not to the
    parser package.
 3. **Enforce constraints**: `enforce_constraints` rejects an illegal selection
    before any artifact write.
-4. **Project**: `pyssp_sysml2.projection` converts the loaded, post-selection
+4. **Project**: `pyssp_sysml.projection` converts the loaded, post-selection
    architecture into parser-free records (`projection/model.py`). This is the
    only SSP-generation code that reads `Architecture`, `PartDefinition`,
    `PartUsage`, `effective_members`, `resolve_part`, `resolve_port`,
@@ -27,8 +27,8 @@ The SSP direction has five stages, each with one owner:
    pre-resolves definition pointers, flattens inherited members, normalizes
    member directions, expands parameter indices, and projects roles, the
    experiment, parameter sets, and mappings.
-5. **Emit**: `pyssp_sysml2.emit` writes SSD, SSV, SSM, the analysis descriptor,
-   or the packaged SSP from those records. Emitters import no `pycps_sysml2`
+5. **Emit**: `pyssp_sysml.emit` writes SSD, SSV, SSM, the analysis descriptor,
+   or the packaged SSP from those records. Emitters import no `pycps_sysml`
    module and never see a loaded architecture.
 
 `artifacts/*` hold the composition wrappers: their `generate_*` functions run
