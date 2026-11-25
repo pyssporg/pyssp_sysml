@@ -9,8 +9,8 @@ authors:
   - name: "Erik Rosenlund"
     orcid: "https://orcid.org/0009-0000-4238-3271"
   - name: "pyssp contributors"
-date-released: "2026-11-22"
-version: "0.6.1"
+date-released: "2026-11-24"
+version: "0.7.0"
 license: "MIT"
 repository-code: "https://github.com/pyssporg/pyssp_sysml"
 keywords:
